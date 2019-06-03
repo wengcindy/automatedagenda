@@ -1,65 +1,80 @@
-import java.io.FileReader; 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator; 
 import java.util.Map; 
-  
+
+import org.json.*;
 import org.json.simple.JSONArray; 
-import org.json.simple.JSONObject; 
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.json.simple.parser.*; 
   
 public class jsonParser 
 { 
     public static void main(String[] args) 
     { 
-        // parsing file "JSONExample.json" 
-        Object obj = new JSONParser().parse(new FileReader("2019winter.json")); 
-          
-        // typecasting obj to JSONObject 
+
+        Object obj = null;
+		try {
+			obj = new JSONParser().parse(new FileReader("2019winter.json"));
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+           
         JSONObject jo = (JSONObject) obj; 
-
-        JSONObject w2 = (JSONObject) jo.getJSONObject("2019Winter2");
-        JSONArray w2_audio = (JSONArray) w2.getJSONArray("audioData");
-        for(int i = 0; i < w2_audio.length(); i++){
-            String username = (String) w2_audio[i].get("username");
+        
+        System.out.println("Winter 1");
+        System.out.println("---------");
+        JSONObject w1 = (JSONObject) jo.get("2019winter1");
+        JSONArray w1_audio = (JSONArray) w1.get("audioData");
+        for(Object o: w1_audio){
+            String username = (String) ((JSONObject) o).get("username");
+            long startTime = (long) ((JSONObject)o).get("startTime");
+            long endTime = (long) ((JSONObject)o).get("endTime");
             System.out.println(username);
+            System.out.println(endTime - startTime);
+            System.out.println();
         }
+        System.out.println();
+        System.out.println();
+        System.out.println();
 
-
-
-          
-        // // getting firstName and lastName 
-        // String firstName = (String) jo.get("firstName"); 
-        // String lastName = (String) jo.get("lastName"); 
-          
-        // System.out.println(firstName); 
-        // System.out.println(lastName); 
-          
-        // // getting age 
-        // long age = (long) jo.get("age"); 
-        // System.out.println(age); 
-          
-        // // getting address 
-        // Map address = ((Map)jo.get("address")); 
-          
-        // // iterating address Map 
-        // Iterator<Map.Entry> itr1 = address.entrySet().iterator(); 
-        // while (itr1.hasNext()) { 
-        //     Map.Entry pair = itr1.next(); 
-        //     System.out.println(pair.getKey() + " : " + pair.getValue()); 
-        // } 
-          
-        // // getting phoneNumbers 
-        // JSONArray ja = (JSONArray) jo.get("phoneNumbers"); 
-          
-        // // iterating phoneNumbers 
-        // Iterator itr2 = ja.iterator(); 
-          
-        // while (itr2.hasNext())  
-        // { 
-        //     itr1 = ((Map) itr2.next()).entrySet().iterator(); 
-        //     while (itr1.hasNext()) { 
-        //         Map.Entry pair = itr1.next(); 
-        //         System.out.println(pair.getKey() + " : " + pair.getValue()); 
-        //     } 
-        // } 
+        System.out.println("Winter 2");
+        System.out.println("---------");
+        JSONObject w2 = (JSONObject) jo.get("2019winter2");
+        JSONArray w2_audio = (JSONArray) w2.get("audioData");
+        for(Object o: w2_audio){
+            String username = (String) ((JSONObject) o).get("username");
+            long startTime = (long) ((JSONObject)o).get("startTime");
+            long endTime = (long) ((JSONObject)o).get("endTime");
+            System.out.println(username);
+            System.out.println(endTime - startTime);
+            System.out.println();
+        }
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        
+        System.out.println("Winter 3");
+        System.out.println("---------");
+        JSONObject w3 = (JSONObject) jo.get("2019winter3");
+        JSONArray w3_audio = (JSONArray) w3.get("audioData");
+        for(Object o: w2_audio){
+            String username = (String) ((JSONObject) o).get("username");
+            long startTime = (long) ((JSONObject)o).get("startTime");
+            long endTime = (long) ((JSONObject)o).get("endTime");
+            System.out.println(username);
+            System.out.println(endTime - startTime);
+            System.out.println();
+        }
     } 
 } 
