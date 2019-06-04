@@ -85,8 +85,8 @@ public class jsonParser
         JSONArray w1_audio = (JSONArray) w1.get("audioData");
         for(Object o: w1_audio){
             String username = (String) ((JSONObject) o).get("username");
-            long startTime = (long) ((JSONObject)o).get("startTime");
-            long endTime = (long) ((JSONObject)o).get("endTime");
+            long startTime = ((long) ((JSONObject)o).get("startTime"))/1000;
+            long endTime = ((long) ((JSONObject)o).get("endTime"))/1000;
             numspoken++;
             timespoken += endTime - startTime;
             
@@ -115,8 +115,8 @@ public class jsonParser
         JSONArray w2_audio = (JSONArray) w2.get("audioData");
         for(Object o: w2_audio){
             String username = (String) ((JSONObject) o).get("username");
-            long startTime = (long) ((JSONObject)o).get("startTime");
-            long endTime = (long) ((JSONObject)o).get("endTime");
+            long startTime = ((long) ((JSONObject)o).get("startTime"))/1000;
+            long endTime = ((long) ((JSONObject)o).get("endTime"))/1000;
             numspoken++;
             timespoken += endTime - startTime;
             System.out.println(username);
@@ -143,8 +143,8 @@ public class jsonParser
         JSONArray w3_audio = (JSONArray) w3.get("audioData");
         for(Object o: w3_audio){
             String username = (String) ((JSONObject) o).get("username");
-            long startTime = (long) ((JSONObject)o).get("startTime");
-            long endTime = (long) ((JSONObject)o).get("endTime");
+            long startTime = ((long) ((JSONObject)o).get("startTime"))/1000;
+            long endTime = ((long) ((JSONObject)o).get("endTime"))/1000;
             numspoken++;
             timespoken += endTime - startTime;
             System.out.println(username);
