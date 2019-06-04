@@ -32,6 +32,8 @@ public class jsonParser
            
         JSONObject jo = (JSONObject) obj; 
         
+        int numspoken = 0;
+        int timespoken = 0;
         System.out.println("Winter 1");
         System.out.println("---------");
         JSONObject w1 = (JSONObject) jo.get("2019winter1");
@@ -40,14 +42,20 @@ public class jsonParser
             String username = (String) ((JSONObject) o).get("username");
             long startTime = (long) ((JSONObject)o).get("startTime");
             long endTime = (long) ((JSONObject)o).get("endTime");
+            numspoken++;
+            timespoken += endTime - startTime;
             System.out.println(username);
             System.out.println(endTime - startTime);
+            System.out.println("Num of ppl spoken: " + numspoken);
+            System.out.println("Total time spoken: " + timespoken);
             System.out.println();
         }
         System.out.println();
         System.out.println();
         System.out.println();
-
+        
+        numspoken = 0;
+        timespoken = 0;
         System.out.println("Winter 2");
         System.out.println("---------");
         JSONObject w2 = (JSONObject) jo.get("2019winter2");
@@ -56,14 +64,20 @@ public class jsonParser
             String username = (String) ((JSONObject) o).get("username");
             long startTime = (long) ((JSONObject)o).get("startTime");
             long endTime = (long) ((JSONObject)o).get("endTime");
+            numspoken++;
+            timespoken += endTime - startTime;
             System.out.println(username);
             System.out.println(endTime - startTime);
+            System.out.println("Num of ppl spoken: " + numspoken);
+            System.out.println("Total time spoken: " + timespoken);
             System.out.println();
         }
         System.out.println();
         System.out.println();
         System.out.println();
         
+        numspoken = 0;
+        timespoken = 0;
         System.out.println("Winter 3");
         System.out.println("---------");
         JSONObject w3 = (JSONObject) jo.get("2019winter3");
@@ -72,8 +86,12 @@ public class jsonParser
             String username = (String) ((JSONObject) o).get("username");
             long startTime = (long) ((JSONObject)o).get("startTime");
             long endTime = (long) ((JSONObject)o).get("endTime");
+            numspoken++;
+            timespoken += endTime - startTime;
             System.out.println(username);
             System.out.println(endTime - startTime);
+            System.out.println("Num of ppl spoken: " + numspoken);
+            System.out.println("Total time spoken: " + timespoken);
             System.out.println();
         }
     } 
