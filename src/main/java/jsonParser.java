@@ -10,6 +10,7 @@ import org.json.*;
 public class jsonParser {
     final static boolean VERBOSE = true;
     final static boolean IGNORE_EMPTY_MESSAGES = true;
+    final static boolean IMPORT_LABELS = false;  // true;
     static String path = "2019winter.json";
 
     static int credits = 0;
@@ -18,7 +19,7 @@ public class jsonParser {
             "ID",
             "Name",
             "Individual speaking time",
-            "Individual weighted sentiment score",
+            "Individual sentiment score",
             "Total number of people spoken",
             "Total speaking time",
             "Total number of people spoken about pros",
@@ -30,7 +31,8 @@ public class jsonParser {
             "Weighted total number of people spoken about pros",
             "Weighted total speaking time about pros",
             "Weighted total number of people spoken about cons",
-            "Weighted total speaking time about cons"
+            "Weighted total speaking time about cons",
+            "Label of current status"
     );
 
     /**
@@ -136,6 +138,7 @@ public class jsonParser {
         int audioId = 0;
         double speechTime = 0;
         double weightedSentiment = 0;
+        int label = 0;
         // For the entire section
         int numSpoken = 0;
         double timeSpoken = 0;
@@ -219,6 +222,21 @@ public class jsonParser {
         }
 
         /**
+         * Reads the label for current speech (status at the end of this),
+         * either from user input or from existing sources.
+         */
+        public void readLabel() {
+            if (IMPORT_LABELS) {
+                // TODO
+            } else {
+                Scanner in = new Scanner(System.in);
+                System.out.print("Please enter label (0 - insufficient in both pros and cons, 1 - sufficient pros, 2 - sufficient cons, 3 - sufficient in both pros and cons):");
+                label = in.nextInt();
+                System.out.println();
+            }
+        }
+
+        /**
          * Write current statistics to the CSV output file.
          * Called after each speech.
          */
@@ -239,7 +257,8 @@ public class jsonParser {
                     Double.toString(numSpokenProsWeighted),
                     Double.toString(timeSpokenProsWeighted),
                     Double.toString(numSpokenConsWeighted),
-                    Double.toString(timeSpokenConsWeighted)
+                    Double.toString(timeSpokenConsWeighted),
+                    Integer.toString(label)
             );
             csvWriter.append(String.join(",", l));
             csvWriter.append("\n");
@@ -300,13 +319,13 @@ public class jsonParser {
 
         stats.newSpeech(id, username, startTime, endTime);
         for (String sentence : sentences) {
+            System.out.println(username + ":" + sentence);
             double ratio = sentence.length() * 1.0 / totalLength;
-            System.out.println(sentence);
             int score = stats.addSentence(sentence, ratio);
-            System.out.println();
-
-            // Labeling tools to be added
         }
+
+        stats.readLabel();
+
         stats.writeCSV();
     }
 
