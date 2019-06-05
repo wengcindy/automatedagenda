@@ -1,6 +1,9 @@
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
+import com.opencsv.CSVReader;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
@@ -10,10 +13,12 @@ import org.json.*;
 public class jsonParser {
     final static boolean VERBOSE = true;
     final static boolean IGNORE_EMPTY_MESSAGES = true;
-    final static boolean IMPORT_LABELS = false;  // true;
-    static String path = "2019winter.json";
+    final static boolean IMPORT_LABELS = true;  // true;
+    final static String path = "2019winter.json";
+    final static String oldCSVPath = ".";
 
     static int credits = 0;
+    static Map<String, Map<Integer, Integer>> oldLabels = new HashMap<>();
 
     static List<String> headers = Arrays.asList(
             "ID",
@@ -133,6 +138,7 @@ public class jsonParser {
      * All stats are reset at the start of each topic/section.
      */
     public static class StatsRecorder {
+        String sessionName = null;
         // For current speech
         String username = null;
         int audioId = 0;
@@ -149,7 +155,8 @@ public class jsonParser {
         double numSpokenConsWeighted = 0, timeSpokenConsWeighted = 0;
         FileWriter csvWriter = null;
 
-        public StatsRecorder(FileWriter csvWriter) {
+        public StatsRecorder(String session, FileWriter csvWriter) {
+            sessionName = session;
             this.csvWriter = csvWriter;
             newSection();
         }
@@ -227,13 +234,21 @@ public class jsonParser {
          */
         public void readLabel() {
             if (IMPORT_LABELS) {
-                // TODO
-            } else {
-                Scanner in = new Scanner(System.in);
-                System.out.print("Please enter label (0 - insufficient in both pros and cons, 1 - sufficient pros, 2 - sufficient cons, 3 - sufficient in both pros and cons):");
-                label = in.nextInt();
-                System.out.println();
+                boolean success = true;
+                try {
+                    label = oldLabels.get(sessionName).get(audioId);
+                } catch (NullPointerException e) {
+                    // ID key doesn't exist for some reason
+                    success = false;
+                }
+                if (success) {
+                    return;
+                }
             }
+            Scanner in = new Scanner(System.in);
+            System.out.print("Please enter label (0 - insufficient in both pros and cons, 1 - sufficient pros, 2 - sufficient cons, 3 - sufficient in both pros and cons):");
+            label = in.nextInt();
+            System.out.println();
         }
 
         /**
@@ -263,6 +278,36 @@ public class jsonParser {
             csvWriter.append(String.join(",", l));
             csvWriter.append("\n");
         }
+    }
+
+    /**
+     * Read labels from past CSVs, if applicable.
+     * Assumes CSV file is stored in oldCSVPath and named as the session
+     * name.
+     * @param sessionName Name of session (room)
+     */
+    public static void initializeLabels(String sessionName) throws IOException {
+        Path oldCSV = Paths.get(oldCSVPath).resolve(sessionName + ".csv");
+        CSVReader csvReader = new CSVReader(new FileReader(oldCSV.toFile()));
+
+        List<String> header = Arrays.asList(csvReader.readNext());
+        int idHeader = header.indexOf("ID");
+        int labelHeader = header.indexOf("Label of current status");
+        if (idHeader == -1) {
+            throw new IOException("Malformatted CSV file: ID header not found");
+        }
+        if (labelHeader == -1) {
+            throw new IOException("Malformatted CSV file: label header not found");
+        }
+
+        oldLabels.putIfAbsent(sessionName, new HashMap<>());
+        String[] row = csvReader.readNext();
+        while (row != null) {
+            oldLabels.get(sessionName).put(Integer.parseInt(row[idHeader]),
+                    Integer.parseInt(row[labelHeader]));
+            row = csvReader.readNext();
+        }
+        csvReader.close();
     }
 
     /**
@@ -343,6 +388,11 @@ public class jsonParser {
 
         System.out.println(sessionName);
         System.out.println("---------");
+
+        if (IMPORT_LABELS) {  // IMPORTANT: Do this before writing the new CSV file since it might override old data
+            initializeLabels(sessionName);
+        }
+
         File file = new File(sessionName + ".csv");
         file.createNewFile();
         FileWriter csvWriter = new FileWriter(file);
@@ -351,7 +401,7 @@ public class jsonParser {
         csvWriter.append(String.join(",", headers) + "\n");
 
         int currentSection = 0;
-        StatsRecorder stats = new StatsRecorder(csvWriter);
+        StatsRecorder stats = new StatsRecorder(sessionName, csvWriter);
 
         for (int i=0; i<sessionAudio.length(); i++){
             JSONObject singleSpeech = sessionAudio.getJSONObject(i);

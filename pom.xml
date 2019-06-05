@@ -57,10 +57,15 @@
             <version>20180813</version>
         </dependency>
         <dependency>
-             <groupId>io.cortical</groupId>
-             <artifactId>retina-api-java-sdk</artifactId>
-             <version>1.0.2</version>
-         </dependency>
+            <groupId>io.cortical</groupId>
+            <artifactId>retina-api-java-sdk</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.opencsv</groupId>
+            <artifactId>opencsv</artifactId>
+            <version>4.6</version>
+        </dependency>
     </dependencies>
 
 
