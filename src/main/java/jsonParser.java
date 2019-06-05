@@ -140,8 +140,10 @@ public class jsonParser {
         double numSpokenWeighted = 0, timeSpokenWeighted = 0;
         double numSpokenProsWeighted = 0, timeSpokenProsWeighted = 0;
         double numSpokenConsWeighted = 0, timeSpokenConsWeighted = 0;
+        FileWriter csvWriter = null;
 
-        public StatsRecorder() {
+        public StatsRecorder(FileWriter csvWriter) {
+            this.csvWriter = csvWriter;
             newSection();
         }
 
@@ -186,7 +188,7 @@ public class jsonParser {
          *                    total length of that person's speech
          * @return Score of this sentence
          */
-        public double addSentence(String sentence, double lengthRatio) {
+        public int addSentence(String sentence, double lengthRatio) {
             SentimentAnalyzer sa = new SentimentAnalyzer(sentence);
             int score = sa.sentimentScore;
             weightedSentiment += lengthRatio * score;
@@ -212,9 +214,8 @@ public class jsonParser {
         /**
          * Write current statistics to the CSV output file.
          * Called after each speech.
-         * @param csvWriter CSV writer
          */
-        public void writeCSV(FileWriter csvWriter) throws IOException {
+        public void writeCSV() throws IOException {
             List<String> l = Arrays.asList(
                     username,
                     Double.toString(speechTime),
@@ -250,12 +251,102 @@ public class jsonParser {
         long endTime = 0;
         for (int i=0; i<sectionData.length(); i++) {
             JSONObject section = sectionData.getJSONObject(i);
+            if (!section.getString("name").startsWith("A")) {
+                continue;
+            }
             startTimes.add(section.getLong("startTime"));
             endTime = Math.max(endTime, section.getLong("endTime"));
         }
         List<Long> times = new ArrayList<>(startTimes);
         times.add(endTime);
         return times;
+    }
+
+    /**
+     * Process a single speech, i.e. an audio of one person speaking.
+     * Add information of each sentence in the speech.
+     * @param singleSpeech Speech data as JSON object
+     * @param stats Stats recorder with ongoing records from the session
+     */
+    public static void processSpeech(JSONObject singleSpeech, StatsRecorder stats) throws IOException {
+        String username = singleSpeech.getString("username");
+        long startTime = singleSpeech.getLong("startTime");
+        long endTime = singleSpeech.getLong("endTime");
+        stats.newSpeech(username, startTime, endTime);
+
+        // Each audio might be broken down into several sentences.
+        // Extract all sentences
+        JSONArray sentencesData = singleSpeech.getJSONArray("data");
+        List<String> sentences = new ArrayList<>();
+        int totalLength = 0;
+        for (int j=0; j<sentencesData.length(); j++) {
+            String sentence = sentencesData.getJSONObject(j).getString("text");
+            // sentencesData.getJSONObject(j).getDouble("confidence");  // For future use
+            sentences.add(sentence);
+            totalLength += sentence.length();
+        }
+
+        for (String sentence : sentences) {
+            double ratio = sentence.length() * 1.0 / totalLength;
+            System.out.println(sentence);
+            int score = stats.addSentence(sentence, ratio);
+            System.out.println();
+
+            // Labeling tools to be added
+        }
+
+        stats.writeCSV();
+    }
+
+    /**
+     * Process a session (room) and write all generated data points to a CSV file.
+     * @param sessionName
+     * @param sessionData
+     */
+    public static void processSession(String sessionName, JSONObject sessionData) throws IOException {
+        JSONArray sessionAudio = sessionData.getJSONArray("audioData");
+        List<Long> sectionTimes = getSectionTimes(sessionData.getJSONArray("sectionData"));
+        if (sectionTimes.isEmpty()) {
+            return;
+        }
+
+        System.out.println(sessionName);
+        System.out.println("---------");
+        File file = new File(sessionName + ".csv");
+        file.createNewFile();
+        FileWriter csvWriter = new FileWriter(file);
+
+        // Create column labels for csv
+        csvWriter.append(String.join(",", headers) + "\n");
+
+        int currentSection = 0;
+        StatsRecorder stats = new StatsRecorder(csvWriter);
+
+        for (int i=0; i<sessionAudio.length(); i++){
+            JSONObject singleSpeech = sessionAudio.getJSONObject(i);
+            long startTime = singleSpeech.getLong("startTime");
+
+            // Checks if a new section needs to be started, and whether
+            // this speech should count at all
+            if (startTime < sectionTimes.get(currentSection)) {
+                continue;  // Intro (before A1)
+            } else if (startTime >= sectionTimes.get(currentSection + 1)) {
+                currentSection += 1;
+                if (currentSection == sectionTimes.size() - 1) {
+                    break;  // Past the last section (question generation, sorting)
+                }
+                stats.newSection();
+                System.out.println("---------");
+                System.out.println("New section");
+                System.out.println("---------");
+            }
+
+            processSpeech(singleSpeech, stats);
+        }
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        csvWriter.close();
     }
 
     public static void main(String[] args) throws IOException {
@@ -270,74 +361,7 @@ public class jsonParser {
 		for (Object sessionObj : database.keySet()) {
             String sessionName = (String) sessionObj;
             JSONObject sessionData = database.getJSONObject(sessionName);
-            JSONArray sessionAudio = sessionData.getJSONArray("audioData");
-            List<Long> sectionTimes = getSectionTimes(sessionData.getJSONArray("sectionData"));
-            if (sectionTimes.isEmpty()) {
-                continue;
-            }
-
-            System.out.println(sessionName);
-            System.out.println("---------");
-            File file = new File(sessionName + ".csv");
-            file.createNewFile();
-            FileWriter csvWriter = new FileWriter(file);
-
-            // Create column labels for csv
-            csvWriter.append(String.join(",", headers) + "\n");
-
-            int currentSection = 0;
-            StatsRecorder stats = new StatsRecorder();
-
-            for (int i=0; i<sessionAudio.length(); i++){
-                JSONObject singleSpeech = sessionAudio.getJSONObject(i);
-                String username = singleSpeech.getString("username");
-                long startTime = singleSpeech.getLong("startTime");
-                long endTime = singleSpeech.getLong("endTime");
-
-                // Checks if a new section needs to be started, and whether
-                // this speech should count at all
-                if (startTime < sectionTimes.get(currentSection)) {
-                    continue;  // Intro (before A1)
-                } else if (startTime >= sectionTimes.get(currentSection + 1)) {
-                    currentSection += 1;
-                    if (currentSection == sectionTimes.size() - 1) {
-                        break;  // Past the last section (question generation, sorting)
-                    }
-                    stats.newSection();
-                    System.out.println("---------");
-                    System.out.println("New section");
-                    System.out.println("---------");
-                }
-
-                stats.newSpeech(username, startTime, endTime);
-
-                // Each audio might be broken down into several sentences.
-                // Extract all sentences
-                JSONArray sentencesData = singleSpeech.getJSONArray("data");
-                List<String> sentences = new ArrayList<>();
-                int totalLength = 0;
-                for (int j=0; j<sentencesData.length(); j++) {
-                    String sentence = sentencesData.getJSONObject(j).getString("text");
-                    // sentencesData.getJSONObject(j).getDouble("confidence");  // For future use
-                    sentences.add(sentence);
-                    totalLength += sentence.length();
-                }
-
-                for (String sentence : sentences) {
-                    double ratio = sentence.length() * 1.0 / totalLength;
-                    System.out.println(sentence);
-                    stats.addSentence(sentence, ratio);
-                    System.out.println();
-
-                    // Labeling tools to be added
-                }
-
-                stats.writeCSV(csvWriter);
-            }
-            System.out.println();
-            System.out.println();
-            System.out.println();
-            csvWriter.close();
+            processSession(sessionName, sessionData);
         }
 
         System.out.println("Remaining API credits: " + credits);
