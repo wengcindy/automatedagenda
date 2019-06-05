@@ -61,6 +61,11 @@
             <artifactId>json</artifactId>
             <version>20180813</version>
         </dependency>
+        <dependency>
+             <groupId>io.cortical</groupId>
+             <artifactId>retina-api-java-sdk</artifactId>
+             <version>1.0.2</version>
+         </dependency>
     </dependencies>
 
 
