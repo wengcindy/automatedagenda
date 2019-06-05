@@ -19,6 +19,7 @@ import org.json.simple.parser.*;*/
   
 public class jsonParser {
     static String path = "2019winter.json";
+    static int credits = 0;
 
     /**
      * Tool for analysis of sentiment and similarities to predetermined
@@ -54,24 +55,39 @@ public class jsonParser {
 
         private void sentimentAnalysis() {
             HttpResponse<JsonNode> response = null;
-            try {
-                response = Unirest.post("https://api.meaningcloud.com/sentiment-2.1")
-                        .header("content-type", "application/x-www-form-urlencoded")
-                        .queryString("key", "7a4a4878fd419d831e44ea7ed1549149")
-                        .field("lang", "en")
-                        .field("txt", message)
-                        //.body("key=7a4a4878fd419d831e44ea7ed1549149&lang=en&txt=" + message)
-                        .asJson();
-            } catch (UnirestException e) {
-                e.printStackTrace();
-                return;
-            }
-            if (!response.isSuccess()) {
-                System.out.println("Error " + response.getStatus() + " when running Sentiment Analysis: " + response.getStatusText());
-                return;
+            JSONObject result = null;
+            while (result == null) {
+                try {
+                    response = Unirest.post("https://api.meaningcloud.com/sentiment-2.1")
+                            .header("content-type", "application/x-www-form-urlencoded")
+                            .queryString("key", "7a4a4878fd419d831e44ea7ed1549149")
+                            .field("lang", "en")
+                            .field("txt", message)
+                            //.body("key=7a4a4878fd419d831e44ea7ed1549149&lang=en&txt=" + message)
+                            .asJson();
+                } catch (UnirestException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                if (!response.isSuccess()) {
+                    System.out.println("Error " + response.getStatus() + " when running Sentiment Analysis: " + response.getStatusText());
+                    return;
+                }
+                result = response.getBody().getObject();
+                String msg = result.getJSONObject("status").getString("msg");
+                if (!msg.equals("OK")) {
+                    if (msg.equals("Request rate limit exceeded")) {
+                        result = null;
+                    } else {
+                        System.out.println("API error when running Sentiment Analysis: " + msg);
+                        return;
+                    }
+                } else {
+                    credits = result.getJSONObject("status").getInt("remaining_credits");
+                }
             }
 
-            JSONObject result = response.getBody().getObject();
+            System.out.println(result);
             sentimentTag = result.getString("score_tag");
             // Convert letter score to numeric score
             List<String> sentiments = Arrays.asList("N+", "N", "NEU", "P", "P+");
@@ -102,17 +118,32 @@ public class jsonParser {
             FileWriter csvWriter = new FileWriter(file);
 
             // Create column labels for csv
-            csvWriter.append("Name");
-            csvWriter.append(",");
-            csvWriter.append("Individual speaking time");
-            csvWriter.append(",");
-            csvWriter.append("Total number of people spoken");
-            csvWriter.append(",");
-            csvWriter.append("Total speaking time");
-            csvWriter.append("\n");
+            List<String> headers = Arrays.asList(
+                    "Name",
+                    "Individual speaking time",
+                    "Individual weighted sentiment score",
+                    "Total number of people spoken",
+                    "Total speaking time",
+                    "Total number of people spoken about pros",
+                    "Total speaking time about pros",
+                    "Total number of people spoken about cons",
+                    "Total speaking time about cons",
+                    "Weighted total number of people spoken",
+                    "Weighted total speaking time",
+                    "Weighted total number of people spoken about pros",
+                    "Weighted total speaking time about pros",
+                    "Weighted total number of people spoken about cons",
+                    "Weighted total speaking time about cons"
+            );
+            csvWriter.append(String.join(",", headers) + "\n");
 
-            int numspoken = 0;
-            double timespoken = 0;
+            int numSpoken = 0;
+            double timeSpoken = 0;
+            double numSpokenPros = 0, timeSpokenPros = 0;
+            double numSpokenCons = 0, timeSpokenCons = 0;
+            double numSpokenWeighted = 0, timeSpokenWeighted = 0;
+            double numSpokenProsWeighted = 0, timeSpokenProsWeighted = 0;
+            double numSpokenConsWeighted = 0, timeSpokenConsWeighted = 0;
             JSONObject sessionData = database.getJSONObject(sessionName);
             JSONArray sessionAudio = sessionData.getJSONArray("audioData");
 
@@ -121,17 +152,86 @@ public class jsonParser {
                 String username = singleSpeech.getString("username");
                 double startTime = singleSpeech.getLong("startTime")/1000.0;
                 double endTime = singleSpeech.getLong("endTime")/1000.0;
-                numspoken++;
-                timespoken += endTime - startTime;
+                double speechTime = endTime - startTime;
+                double weightedSentiment = 0;
+                numSpoken++;
+                timeSpoken += speechTime;
+
+                // Each audio might be broken down into several sentences.
+                // Extract all sentences
+                JSONArray sentencesData = singleSpeech.getJSONArray("data");
+                List<String> sentences = new ArrayList<>();
+                int totalLength = 0;
+                for (int j=0; j<sentencesData.length(); j++) {
+                    String sentence = sentencesData.getJSONObject(j).getString("text");
+                    // sentencesData.getJSONObject(j).getDouble("confidence");  // For future use
+                    sentences.add(sentence);
+                    totalLength += sentence.length();
+                }
+
+                /* Analyze the sentiment of each sentence, and then increment
+                 the # people, speaking time and weighted sentiment score
+                 accordingly.
+                 The increase is according to the proportion this sentence
+                 takes in the entire speech in terms of characters.
+                 For example, a 40-character sentence about pros in the
+                 entire speech of 100 characters will contribute 0.4 to
+                 the number of people spoken about pros.*/
+                for (String sentence : sentences) {
+                    SentimentAnalyzer sa = new SentimentAnalyzer(sentence);
+                    int score = sa.sentimentScore;
+                    double ratio = sentence.length() * 1.0 / totalLength;
+                    weightedSentiment += ratio * score;
+                    numSpokenWeighted += ratio * score;
+                    timeSpokenWeighted += speechTime * ratio * score;
+                    if (score > 0) {
+                        numSpokenPros += ratio;
+                        timeSpokenPros += speechTime * ratio;
+                        numSpokenProsWeighted += ratio * score;
+                        timeSpokenProsWeighted += speechTime * ratio * score;
+                    } else if (score < 0) {
+                        numSpokenCons += ratio;
+                        timeSpokenCons += speechTime * ratio;
+                        numSpokenConsWeighted -= ratio * score;
+                        timeSpokenConsWeighted -= speechTime * ratio * score;
+                    }
+                }
 
                 System.out.println(username);
-                System.out.println(endTime - startTime);
-                System.out.println("Num of ppl spoken: " + numspoken);
-                System.out.println("Total time spoken: " + timespoken);
+                System.out.println("Time of this speech:" + speechTime);
+                System.out.println("Weighted sentiment score:" + weightedSentiment);
+                System.out.println("Num of ppl spoken: " + numSpoken);
+                System.out.println("Total time spoken: " + timeSpoken);
+                System.out.println("Num of ppl spoken weighted: " + numSpokenWeighted);
+                System.out.println("Total time spoken weighted: " + timeSpokenWeighted);
+                System.out.println("Num of ppl spoken pros: " + numSpokenPros);
+                System.out.println("Total time spoken pros: " + timeSpokenPros);
+                System.out.println("Num of ppl spoken cons: " + numSpokenCons);
+                System.out.println("Total time spoken cons: " + timeSpokenCons);
+                System.out.println("Num of ppl spoken pros weighted: " + numSpokenProsWeighted);
+                System.out.println("Total time spoken pros weighted: " + timeSpokenProsWeighted);
+                System.out.println("Num of ppl spoken cons weighted: " + numSpokenConsWeighted);
+                System.out.println("Total time spoken cons weighted: " + timeSpokenConsWeighted);
                 System.out.println();
 
-                //Write to csv file
-                List<String> l = Arrays.asList(username, Double.toString(endTime-startTime), Long.toString(numspoken), Double.toString(timespoken));
+                // Write to csv file
+                List<String> l = Arrays.asList(
+                        username,
+                        Double.toString(speechTime),
+                        Double.toString(weightedSentiment),
+                        Long.toString(numSpoken),
+                        Double.toString(timeSpoken),
+                        Double.toString(numSpokenPros),
+                        Double.toString(timeSpokenPros),
+                        Double.toString(numSpokenCons),
+                        Double.toString(timeSpokenCons),
+                        Double.toString(numSpokenWeighted),
+                        Double.toString(timeSpokenWeighted),
+                        Double.toString(numSpokenProsWeighted),
+                        Double.toString(timeSpokenProsWeighted),
+                        Double.toString(numSpokenConsWeighted),
+                        Double.toString(timeSpokenConsWeighted)
+                );
                 csvWriter.append(String.join(",", l));
                 csvWriter.append("\n");
             }
@@ -141,10 +241,6 @@ public class jsonParser {
             csvWriter.close();
         }
 
-        /*String str = "Unirest is a set of lightweight HTTP libraries available in multiple languages, built and maintained by Mashape, who also maintain the open-source API Gateway Kong. ";
-        SentimentAnalyzer s = new SentimentAnalyzer(str);
-        System.out.println(s.sentimentTag);
-        System.out.println(s.sentimentScore);
-        System.out.println(s.sentimentConfidence);*/
+        System.out.println("Remaining API credits: " + credits);
     } 
 } 
