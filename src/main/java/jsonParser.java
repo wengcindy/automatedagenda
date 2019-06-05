@@ -8,11 +8,14 @@ import kong.unirest.UnirestException;
 import org.json.*;
   
 public class jsonParser {
+    final static boolean VERBOSE = true;
+    final static boolean IGNORE_EMPTY_MESSAGES = true;
     static String path = "2019winter.json";
+
     static int credits = 0;
-    static boolean VERBOSE = true;
 
     static List<String> headers = Arrays.asList(
+            "ID",
             "Name",
             "Individual speaking time",
             "Individual weighted sentiment score",
@@ -130,6 +133,7 @@ public class jsonParser {
     public static class StatsRecorder {
         // For current speech
         String username = null;
+        int audioId = 0;
         double speechTime = 0;
         double weightedSentiment = 0;
         // For the entire section
@@ -149,6 +153,7 @@ public class jsonParser {
 
         public void newSection() {
             String username = null;
+            audioId = 0;
             speechTime = 0;
             weightedSentiment = 0;
             numSpoken = 0;
@@ -162,12 +167,14 @@ public class jsonParser {
 
         /**
          * Start a new speech, i.e. an audio of one person speaking.
-         * @param username Name of current speaker
+         * @param id ID of speech from JSON (for importing labels)
+         * @param user Name of current speaker
          * @param startTime Start time of this speech, as long nubmer
          * @param endTime End time of this speech, as long nubmer
          */
-        public void newSpeech(String username, long startTime, long endTime) {
-            this.username = username;
+        public void newSpeech(int id, String user, long startTime, long endTime) {
+            username = user;
+            audioId = id;
             speechTime = ((double) endTime - (double) startTime) / 1000;
             weightedSentiment = 0;
             numSpoken++;
@@ -217,6 +224,7 @@ public class jsonParser {
          */
         public void writeCSV() throws IOException {
             List<String> l = Arrays.asList(
+                    Integer.toString(audioId),
                     username,
                     Double.toString(speechTime),
                     Double.toString(weightedSentiment),
@@ -269,10 +277,10 @@ public class jsonParser {
      * @param stats Stats recorder with ongoing records from the session
      */
     public static void processSpeech(JSONObject singleSpeech, StatsRecorder stats) throws IOException {
+        int id = singleSpeech.getInt("id");
         String username = singleSpeech.getString("username");
         long startTime = singleSpeech.getLong("startTime");
         long endTime = singleSpeech.getLong("endTime");
-        stats.newSpeech(username, startTime, endTime);
 
         // Each audio might be broken down into several sentences.
         // Extract all sentences
@@ -286,6 +294,11 @@ public class jsonParser {
             totalLength += sentence.length();
         }
 
+        if (totalLength == 0 && IGNORE_EMPTY_MESSAGES) {
+            return;
+        }
+
+        stats.newSpeech(id, username, startTime, endTime);
         for (String sentence : sentences) {
             double ratio = sentence.length() * 1.0 / totalLength;
             System.out.println(sentence);
@@ -294,7 +307,6 @@ public class jsonParser {
 
             // Labeling tools to be added
         }
-
         stats.writeCSV();
     }
 
