@@ -24,19 +24,19 @@ public class jsonParser {
             "ID",
             "Name",
             "Individual speaking time",
-            "Individual sentiment score",
-            "Total number of people spoken",
+            "Individual sentiment",
+            "# people spoken",
             "Total speaking time",
-            "Total number of people spoken about pros",
-            "Total speaking time about pros",
-            "Total number of people spoken about cons",
-            "Total speaking time about cons",
-            "Weighted total number of people spoken",
-            "Weighted total speaking time",
-            "Weighted total number of people spoken about pros",
-            "Weighted total speaking time about pros",
-            "Weighted total number of people spoken about cons",
-            "Weighted total speaking time about cons",
+            //"Total number of people spoken about pros",
+            //"Total speaking time about pros",
+            //"Total number of people spoken about cons",
+            //"Total speaking time about cons",
+            "# ppl spoken (weighted)",
+            "Total speaking time (weighted)",
+            "Pros # ppl spoken (weighted)",
+            "Pros speaking time (weighted)",
+            "Cons # ppl spoken (weighted)",
+            "Cons speaking time (weighted)",
             "Label of current status"
     );
 
@@ -54,11 +54,17 @@ public class jsonParser {
         String sentimentTag;  // Sentiment (P+, P, NEU, N, N+, NONE)
         int sentimentScore;  // -2 (N+) to 2 (P+)
         boolean isAgreement;  // Agreement/disagreement tags from sentiment analysis (highly inaccurate)
-        boolean isSubjective;  // Subjective/objective tags from sentiment analysis
+        //boolean isSubjective;  // Subjective/objective tags from sentiment analysis
         int sentimentConfidence;  // int 0-100
+
+        List<SentimentAnalyzer> sentences;  // For individual sentences
 
         public SentimentAnalyzer(String msg) {
             initMessage(msg);
+        }
+
+        public SentimentAnalyzer(JSONObject result) {
+            processSentimentResult(result);
         }
 
         public void initMessage(String msg) {
@@ -69,10 +75,14 @@ public class jsonParser {
                 return;
             }
 
-            sentimentAnalysis();
+            JSONObject result = getSentimentResult();
+            if (result == null) {
+                throw new NullPointerException("Program terminated due to fatal error with sentiment analysis.");
+            }
+            processSentimentResult(result);
         }
 
-        private void sentimentAnalysis() {
+        private JSONObject getSentimentResult() {
             HttpResponse<JsonNode> response = null;
             JSONObject result = null;
             while (result == null) {
@@ -86,11 +96,11 @@ public class jsonParser {
                             .asJson();
                 } catch (UnirestException e) {
                     e.printStackTrace();
-                    return;
+                    return null;
                 }
                 if (!response.isSuccess()) {
                     System.out.println("Error " + response.getStatus() + " when running Sentiment Analysis: " + response.getStatusText());
-                    return;
+                    return null;
                 }
                 result = response.getBody().getObject();
                 String msg = result.getJSONObject("status").getString("msg");
@@ -99,22 +109,38 @@ public class jsonParser {
                         result = null;
                     } else {
                         System.out.println("API error when running Sentiment Analysis: " + msg);
-                        return;
+                        return null;
                     }
                 } else {
                     credits = result.getJSONObject("status").getInt("remaining_credits");
                 }
             }
+            return result;
+        }
 
+        private void processSentimentResult(JSONObject result) {
             //System.out.println(result);
+            if (result.has("text")) {  // Sentence objects have text
+                message = result.getString("text");
+            }
             sentimentTag = result.getString("score_tag");
             // Convert letter score to numeric score
             List<String> sentiments = Arrays.asList("N+", "N", "NEU", "P", "P+");
             sentimentScore = sentiments.indexOf(sentimentTag) - 2;
             if (sentimentScore == -3) sentimentScore = 0;  // NONE
             isAgreement = result.getString("agreement").equals("AGREEMENT");
-            isSubjective = result.getString("subjectivity").equals("SUBJECTIVE");
+            /*if (result.has("subjectivity")) {  // Sentences have no subjectivity
+                isSubjective = result.getString("subjectivity").equals("SUBJECTIVE");
+            }*/
             sentimentConfidence = result.getInt("confidence");
+
+            sentences = new ArrayList<>();
+            if (result.has("sentence_list")) {
+                JSONArray sentenceObjects = result.getJSONArray("sentence_list");
+                for (int i=0; i<sentenceObjects.length(); i++) {
+                    sentences.add(new SentimentAnalyzer(sentenceObjects.getJSONObject(i)));
+                }
+            }
         }
     }
 
@@ -148,8 +174,8 @@ public class jsonParser {
         // For the entire section
         int numSpoken = 0;
         double timeSpoken = 0;
-        double numSpokenPros = 0, timeSpokenPros = 0;
-        double numSpokenCons = 0, timeSpokenCons = 0;
+        //double numSpokenPros = 0, timeSpokenPros = 0;
+        //double numSpokenCons = 0, timeSpokenCons = 0;
         double numSpokenWeighted = 0, timeSpokenWeighted = 0;
         double numSpokenProsWeighted = 0, timeSpokenProsWeighted = 0;
         double numSpokenConsWeighted = 0, timeSpokenConsWeighted = 0;
@@ -162,63 +188,81 @@ public class jsonParser {
         }
 
         public void newSection() {
-            String username = null;
+            username = null;
             audioId = 0;
             speechTime = 0;
             weightedSentiment = 0;
             numSpoken = 0;
             timeSpoken = 0;
-            numSpokenPros = 0; timeSpokenPros = 0;
-            numSpokenCons = 0; timeSpokenCons = 0;
+            //numSpokenPros = 0; timeSpokenPros = 0;
+            //numSpokenCons = 0; timeSpokenCons = 0;
             numSpokenWeighted = 0; timeSpokenWeighted = 0;
             numSpokenProsWeighted = 0; timeSpokenProsWeighted = 0;
             numSpokenConsWeighted = 0; timeSpokenConsWeighted = 0;
         }
 
         /**
-         * Start a new speech, i.e. an audio of one person speaking.
+         * Add a new speech, i.e. an entire audio of one person speaking.
+         *
+         * Use MeaningCloud API to break down into sentences and analyze
+         * the sentiments of each.
+         *
+         * At the end, obtains the label either by user input or importing.
+         *
          * @param id ID of speech from JSON (for importing labels)
          * @param user Name of current speaker
+         * @param speech Text of entire speech
          * @param startTime Start time of this speech, as long nubmer
          * @param endTime End time of this speech, as long nubmer
          */
-        public void newSpeech(int id, String user, long startTime, long endTime) {
+        public void addSpeech(int id, String user, String speech, long startTime, long endTime) {
             username = user;
             audioId = id;
             speechTime = ((double) endTime - (double) startTime) / 1000;
             weightedSentiment = 0;
             numSpoken++;
             timeSpoken += speechTime;
+            int length = speech.length();
+
+            SentimentAnalyzer sa = new SentimentAnalyzer(speech);
+            if (sa.sentences.isEmpty()) {
+                addSentence(sa, 1.0);
+            } else {
+                for (SentimentAnalyzer sentence : sa.sentences) {
+                    addSentence(sentence, sentence.message.length() * 1.0 / length);
+                }
+            }
+
+            readLabel();
         }
 
         /**
-         * Add a new sentence. Runs sentiment analysis and increment
-         * corresponding counters.
+         * Add a new sentence. Increment corresponding counters.
          *
          * The increase is according to the proportion this sentence
          * takes in the person's entire speech in terms of characters.
          * For example, a 40-character sentence about pros in the
          * entire speech of 100 characters will contribute 0.4 to
          * the number of people spoken about pros.
-         * @param sentence Sentence text
+         * @param sa SentimentAnalyzer object of the sentence
          * @param lengthRatio Proportion of this sentence's length to the
          *                    total length of that person's speech
          * @return Score of this sentence
          */
-        public int addSentence(String sentence, double lengthRatio) {
-            SentimentAnalyzer sa = new SentimentAnalyzer(sentence);
+        public int addSentence(SentimentAnalyzer sa, double lengthRatio) {
+            System.out.println(username + ": " + sa.message);
             int score = sa.sentimentScore;
             weightedSentiment += lengthRatio * score;
             numSpokenWeighted += lengthRatio * score;
             timeSpokenWeighted += speechTime * lengthRatio * score;
             if (score > 0) {
-                numSpokenPros += lengthRatio;
-                timeSpokenPros += speechTime * lengthRatio;
+                //numSpokenPros += lengthRatio;
+                //timeSpokenPros += speechTime * lengthRatio;
                 numSpokenProsWeighted += lengthRatio * score;
                 timeSpokenProsWeighted += speechTime * lengthRatio * score;
             } else if (score < 0) {
-                numSpokenCons += lengthRatio;
-                timeSpokenCons += speechTime * lengthRatio;
+                //numSpokenCons += lengthRatio;
+                //timeSpokenCons += speechTime * lengthRatio;
                 numSpokenConsWeighted -= lengthRatio * score;
                 timeSpokenConsWeighted -= speechTime * lengthRatio * score;
             }
@@ -246,7 +290,7 @@ public class jsonParser {
                 }
             }
             Scanner in = new Scanner(System.in);
-            System.out.print("Please enter label (0 - insufficient in both pros and cons, 1 - sufficient pros, 2 - sufficient cons, 3 - sufficient in both pros and cons):");
+            System.out.print("Please enter label (0 - insufficient in both pros and cons, 1 - sufficient pros, 2 - sufficient cons, 3 - sufficient in both pros and cons): ");
             label = in.nextInt();
             System.out.println();
         }
@@ -263,10 +307,10 @@ public class jsonParser {
                     Double.toString(weightedSentiment),
                     Long.toString(numSpoken),
                     Double.toString(timeSpoken),
-                    Double.toString(numSpokenPros),
-                    Double.toString(timeSpokenPros),
-                    Double.toString(numSpokenCons),
-                    Double.toString(timeSpokenCons),
+                    //Double.toString(numSpokenPros),
+                    //Double.toString(timeSpokenPros),
+                    //Double.toString(numSpokenCons),
+                    //Double.toString(timeSpokenCons),
                     Double.toString(numSpokenWeighted),
                     Double.toString(timeSpokenWeighted),
                     Double.toString(numSpokenProsWeighted),
@@ -337,6 +381,8 @@ public class jsonParser {
     /**
      * Process a single speech, i.e. an audio of one person speaking.
      * Add information of each sentence in the speech.
+     * Sentences are split by the MeaningCloud API.
+     *
      * @param singleSpeech Speech data as JSON object
      * @param stats Stats recorder with ongoing records from the session
      */
@@ -347,30 +393,21 @@ public class jsonParser {
         long endTime = singleSpeech.getLong("endTime");
 
         // Each audio might be broken down into several sentences.
-        // Extract all sentences
+        // Combine all sentences
         JSONArray sentencesData = singleSpeech.getJSONArray("data");
-        List<String> sentences = new ArrayList<>();
-        int totalLength = 0;
+        StringBuilder sentences = new StringBuilder();
         for (int j=0; j<sentencesData.length(); j++) {
             String sentence = sentencesData.getJSONObject(j).getString("text");
             // sentencesData.getJSONObject(j).getDouble("confidence");  // For future use
-            sentences.add(sentence);
-            totalLength += sentence.length();
+            sentences.append(sentence);
         }
 
-        if (totalLength == 0 && IGNORE_EMPTY_MESSAGES) {
+        String speech = sentences.toString();
+        if (speech.length() == 0 && IGNORE_EMPTY_MESSAGES) {
             return;
         }
 
-        stats.newSpeech(id, username, startTime, endTime);
-        for (String sentence : sentences) {
-            System.out.println(username + ":" + sentence);
-            double ratio = sentence.length() * 1.0 / totalLength;
-            int score = stats.addSentence(sentence, ratio);
-        }
-
-        stats.readLabel();
-
+        stats.addSpeech(id, username, speech, startTime, endTime);
         stats.writeCSV();
     }
 
