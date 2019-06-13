@@ -547,6 +547,9 @@ public class jsonParser {
             return;
         }
 
+        // TEST
+        speech.replaceAll("like", "");
+
         stats.addSpeech(id, username, speech, startTime, endTime);
     }
 
