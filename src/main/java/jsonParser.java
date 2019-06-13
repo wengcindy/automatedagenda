@@ -15,7 +15,7 @@ public class jsonParser {
     final static boolean IGNORE_EMPTY_MESSAGES = true;
     static boolean IMPORT_LABELS = true;
     static boolean IMPORT_PROS_CONS = true;
-    final static String path = "climate.json";
+    final static String path = "20190430-finance.json";
     final static String oldCSVPath = ".";
 
     static int credits = 0;
