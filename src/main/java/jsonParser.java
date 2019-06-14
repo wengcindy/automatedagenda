@@ -3,6 +3,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import com.aylien.textapi.TextAPIClient;
+import com.aylien.textapi.TextAPIException;
+import com.aylien.textapi.parameters.SentimentParams;
+import com.aylien.textapi.responses.Sentiment;
 import com.opencsv.CSVReader;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
@@ -17,6 +21,7 @@ public class jsonParser {
     static boolean IMPORT_PROS_CONS = true;
     final static String path = "20190430-finance.json";
     final static String oldCSVPath = ".";
+    static String API = "Aylien";  // "MeaningCloud"
 
     static int credits = 0;
     static Map<String, Map<Integer, Integer>> oldLabels = new HashMap<>();
@@ -53,6 +58,26 @@ public class jsonParser {
     );
 
     /**
+     * Split a speech into sentences, separated by ".".
+     *
+     * Used for all situations outside of MeaningCloud.
+     * (Use default API for MeaningCloud since it counts as 1 API call)
+     * @param speech Entire speech
+     * @return
+     */
+    public static List<String> splitSentences(String speech) {
+        String[] parts = speech.split(".");
+        ArrayList<String> sentences = new ArrayList<>();
+        for (int i=0; i<parts.length; i++) {
+            if (parts[i].replaceAll(" ", "").isEmpty()) {
+                continue;
+            }
+            sentences.add(parts[i] + (i == parts.length - 1? ".": ""));
+        }
+        return sentences;
+    }
+
+    /**
      * Tool for analysis of sentiment and similarities to predetermined
      * pros/cons points.
      *
@@ -67,7 +92,7 @@ public class jsonParser {
         int sentimentScore;  // -2 (N+) to 2 (P+)
         boolean isAgreement;  // Agreement/disagreement tags from sentiment analysis (highly inaccurate)
         //boolean isSubjective;  // Subjective/objective tags from sentiment analysis
-        int sentimentConfidence;  // int 0-100
+        double sentimentConfidence;  // int 0-100
 
         List<SentimentAnalyzer> sentences;  // For individual sentences
 
@@ -86,15 +111,51 @@ public class jsonParser {
                 isEmpty = true;
                 return;
             }
-
-            JSONObject result = getSentimentResult();
-            if (result == null) {
-                throw new NullPointerException("Program terminated due to fatal error with sentiment analysis.");
-            }
-            processSentimentResult(result);
+            analyzeSpeech(msg);
         }
 
-        private JSONObject getSentimentResult() {
+        /**
+         * Input a message, possibly multiple sentences, and then:
+         * - If it's a single sentence, get the sentiment scores etc from
+         *   APIs and store them in this object;
+         * - If it's multiple sentences, create a SentimentAnalyzer on each
+         *   sentence and store all SentimentAnalyzer objects in a list.
+         * @param msg
+         */
+        private void analyzeSpeech(String msg) {
+            List<String> sentences = splitSentences(message);
+            if (sentences.size() <= 1 || API.equals("MeaningCloud")) {  // Single sentence
+                Object result = null;
+                try {
+                    result = getSentimentResult();
+                } catch (TextAPIException e) {
+                    throw new NullPointerException("Program terminated due to fatal error with sentiment analysis.");
+                }
+                if (result == null) {
+                    throw new NullPointerException("Program terminated due to fatal error with sentiment analysis.");
+                }
+                processSentimentResult(result);
+            } else {
+                // Split by sentences for all other APIs
+                // Outsource the actual analysis to sub-level SentimentAnalyzer objects
+                this.sentences = new ArrayList<>();
+                for (String sentence : sentences) {
+                    this.sentences.add(new SentimentAnalyzer(sentence));
+                }
+            }
+        }
+
+        private Object getSentimentResult() throws TextAPIException {  // Use Object since return type can be different
+            if (API.equals("MeaningCloud")) {
+                return getMeaningCloudSentimentResult();
+            }
+            if (API.equals("Aylien")) {
+                return getAylienSentimentResult();
+            }
+            return null;
+        }
+
+        private Object getMeaningCloudSentimentResult() {
             HttpResponse<JsonNode> response = null;
             JSONObject result = null;
             while (result == null) {
@@ -130,7 +191,26 @@ public class jsonParser {
             return result;
         }
 
-        private void processSentimentResult(JSONObject result) {
+        private Object getAylienSentimentResult() throws TextAPIException {
+            TextAPIClient client = new TextAPIClient("8db45b6f", "2540278b2b689af12afdd077570273dd");
+            SentimentParams.Builder builder = SentimentParams.newBuilder();
+            builder.setText(message);
+            Sentiment sentiment = client.sentiment(builder.build());
+            //System.out.println(sentiment);
+            return sentiment;
+        }
+
+        private void processSentimentResult(Object result) {  // Use Object since return type can be different
+            if (API.equals("MeaningCloud")) {
+                processMeaningCloudSentimentResult(result);
+            }
+            if (API.equals("Aylien")) {
+                processAylienSentimentResult(result);
+            }
+        }
+
+        private void processMeaningCloudSentimentResult(Object objResult) {
+            JSONObject result = (JSONObject) objResult;
             //System.out.println(result);
             if (result.has("text")) {  // Sentence objects have text
                 message = result.getString("text");
@@ -153,6 +233,19 @@ public class jsonParser {
                     sentences.add(new SentimentAnalyzer(sentenceObjects.getJSONObject(i)));
                 }
             }
+        }
+
+        private void processAylienSentimentResult(Object objResult) {
+            Sentiment result = (Sentiment) objResult;
+            message =
+            sentimentTag = result.getPolarity();
+            List<String> sentiments = Arrays.asList("negative", "neutral", "positive");
+            sentimentScore = sentiments.indexOf(sentimentTag) - 1;
+            sentimentConfidence = result.getPolarityConfidence();
+        }
+
+        public boolean isMultiSentence() {
+            return sentences == null || sentences.isEmpty();
         }
     }
 
@@ -251,12 +344,12 @@ public class jsonParser {
             sentences = new ArrayList<>();
             predictedSentiments = new ArrayList<>();
             SentimentAnalyzer sa = new SentimentAnalyzer(speech);
-            if (sa.sentences.isEmpty()) {
-                addSentence(sa, 1.0);
-            } else {
+            if (sa.isMultiSentence()) {
                 for (SentimentAnalyzer sentence : sa.sentences) {
                     addSentence(sentence, sentence.message.length() * 1.0 / length);
                 }
+            } else {
+                addSentence(sa, 1.0);
             }
 
             label = readLabel();
@@ -548,7 +641,7 @@ public class jsonParser {
         }
 
         // TEST
-        speech.replaceAll("like", "");
+        speech = speech.replaceAll(" like ", " ");
 
         stats.addSpeech(id, username, speech, startTime, endTime);
     }

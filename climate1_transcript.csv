@@ -1,14 +1,14 @@
 Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 0,12,0,Gabriel Poon,"I finished this option is not the correct one because this is a auto this can help the Avenue radio shop you but it is difficult for the Hong Kong people to 2 to 4 for the environment and Hong Kong people would not have to do this.",-1.0,-1
-0,13,0,Roman Malin-Hiscock,"Yeah, I just feel like you're kind of moving a responsibility a little bit way too much time to the consumer seems to be the trend in green movements on what he was trying to go green a Leupold about end of the economic side on the consumer and try to change that consumption habits Robin and trying to change them, you know bluntly in terms of its going to cost you more about Robin and trying to change them in more subtle ways or just not giving me option in the first place.",1.0,-1
+0,13,0,Roman Malin-Hiscock,"Yeah, I just feel you're kind of moving a responsibility a little bit way too much time to the consumer seems to be the trend in green movements on what he was trying to go green a Leupold about end of the economic side on the consumer and try to change that consumption habits Robin and trying to change them, you know bluntly in terms of its going to cost you more about Robin and trying to change them in more subtle ways or just not giving me option in the first place.",1.0,-1
 0,14,0,Kistella Ka Ki CHAN,"Austin is about City that we also have a large amount of energy resources.",0.0,0
 0,14,1,Kistella Ka Ki CHAN,"So I smoked some images teenager on a country song.",0.0,0
 0,14,2,Kistella Ka Ki CHAN,"I think that because of the Thin Man in Hong Kong.",0.0,0
 0,14,3,Kistella Ka Ki CHAN,"We have some people using our generation capacity.",0.0,0
-0,18,0,Roman Malin-Hiscock,"Yeah, I think it was like one of the main oceans is kind of like increase the use of electric vehicles and causes some errors and you know increase heart rate fees.",-1.0,0
-0,18,1,Roman Malin-Hiscock,"I think people will be able to feel still like they have the option order of eruptions more favorable than others.",0.0,-1
-0,18,2,Roman Malin-Hiscock,"I mean if you just straight-up find stuff about giving an incentive or more attractive secondary option then that's going to be a huge tool going to like that.",2.0,-1
-0,18,3,Roman Malin-Hiscock,"And anyway, so yeah, I think that needs to be incentivizes some way that people feel like there's a choice and that is better.",0.0,-1
+0,18,0,Roman Malin-Hiscock,"Yeah, I think it was one of the main oceans is kind of increase the use of electric vehicles and causes some errors and you know increase heart rate fees.",-1.0,0
+0,18,1,Roman Malin-Hiscock,"I think people will be able to feel still they have the option order of eruptions more favorable than others.",2.0,-1
+0,18,2,Roman Malin-Hiscock,"I mean if you just straight-up find stuff about giving an incentive or more attractive secondary option then that's going to be a huge tool going to that.",2.0,-1
+0,18,3,Roman Malin-Hiscock,"And anyway, so yeah, I think that needs to be incentivizes some way that people feel there's a choice and that is better.",-1.0,-1
 0,19,0,Kistella Ka Ki CHAN,"In Hong Kong.",0.0,0
 0,19,1,Kistella Ka Ki CHAN,"We have some possible ways to reduce us to request.",0.0,0
 0,19,2,Kistella Ka Ki CHAN,"I know that's how come guys have to die.",-2.0,0
@@ -18,7 +18,7 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 0,22,1,Roman Malin-Hiscock,"That would be quite easy to cycle considering most land is pretty much flat, but then you know, you probably have to upgrade the NCR at the same time because more people than be using that is a lot of different trade-offs.",1.0,1
 0,23,0,Killary Lui,"Chase",0.0,0
 0,24,0,Gabriel Poon,"And yes, I I was hoping that this one is not this is not the best option for the cabin reduce.",-1.0,-1
-0,24,1,Gabriel Poon,"How many Mission reducing the cost the government have tried a lot of chores to do that may be increased numbers but and it's not just like the other country that they used maybe they recommend a bicycle to instead of using the car.",-1.0,-1
+0,24,1,Gabriel Poon,"How many Mission reducing the cost the government have tried a lot of chores to do that may be increased numbers but and it's not just the other country that they used maybe they recommend a bicycle to instead of using the car.",1.0,-1
 0,24,2,Gabriel Poon,"So I think it's not a good option for every sister, changes.",-1.0,-1
 0,25,0,Ella Li,"Although I've seen this ocean Sao or if an electric electric car chargers in Hong Kong.",0.0,0
 0,25,1,Ella Li,"Okay, tiny pace and don't have much space to do this for her.",0.0,0
@@ -41,7 +41,7 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 1,32,2,Ka Yee LO,"Aubrey",0.0,0
 1,35,0,Roman Malin-Hiscock,"Yeah, I just think of something is better than nothing.",1.0,1
 1,35,1,Roman Malin-Hiscock,"So some people can afford it whilst I was conned.",-1.0,1
-1,35,2,Roman Malin-Hiscock,"Then there should be some sort of scowl is that who was like to let me know if you would have called afford it because if they cannot get subsidized to a certain degree basing Lane, then it's better to do something wrong with and nothing if it's going to have some supposed outcome, but then there needs to be a mass like focus on that cuz it needs to be rolled out pretty quickly if it's going to happen.",-1.0,1
+1,35,2,Roman Malin-Hiscock,"Then there should be some sort of scowl is that who was to let me know if you would have called afford it because if they cannot get subsidized to a certain degree basing Lane, then it's better to do something wrong with and nothing if it's going to have some supposed outcome, but then there needs to be a mass focus on that cuz it needs to be rolled out pretty quickly if it's going to happen.",-1.0,1
 1,36,0,Kistella Ka Ki CHAN,"Yes, and also I think that humans can have some allergic to English without a solar panel on the rooftop.",-1.0,0
 1,38,0,Killary Lui,"Straight Talk education",0.0,0
 2,40,0,Ella Li,"I think ocean feet is a good options for Hong Kong because in Concord Avenue and efficient source of energy and how do you solve the climate change, I think it's a good options for Hong Kong.",1.0,1
@@ -54,18 +54,18 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 2,45,0,Killary Lui,"stop.",0.0,0
 2,47,0,Roman Malin-Hiscock,"I think one of the things that he's quite clearly parents that you know, a lot of the discussions load the points kind of makeovers that something needs to be done now and listening to you guys speak some you guys are from you know home call and if you want to look at the thing that is the most politically feasible and the thing is going to be supported by the people then it's probably going to be this option.",1.0,1
 2,47,1,Roman Malin-Hiscock,"I mean Hong Kong has been pretty much built on Innovation and investment on Big Industry and technological solutions.",1.0,1
-2,47,2,Roman Malin-Hiscock,"And I think this seems like the greatest the most significant kind of Leap Forward by is probably the hardest measure from a personal perspective.",2.0,1
+2,47,2,Roman Malin-Hiscock,"And I think this seems the greatest the most significant kind of Leap Forward by is probably the hardest measure from a personal perspective.",2.0,1
 2,48,0,Zi Sheng Chiu,"Appreciate those ideas about Spanish technology assist in this as bad about spending money.",2.0,0
 2,48,1,Zi Sheng Chiu,"Also, very carefully consider those in Spanish.",1.0,0
-2,49,0,Roman Malin-Hiscock,"I think like a constantly make the argument and it's not just in Hong Kong is globally like oh, what about the economy if we do this for an environment?",-1.0,1
-2,49,1,Roman Malin-Hiscock,"It's like yeah gray.",0.0,0
+2,49,0,Roman Malin-Hiscock,"I think a constantly make the argument and it's not just in Hong Kong is globally oh, what about the economy if we do this for an environment?",-1.0,1
+2,49,1,Roman Malin-Hiscock,"It's yeah gray.",0.0,0
 2,49,2,Roman Malin-Hiscock,"The economy will sustain the economy is fine at the end of the day.",1.0,1
 2,49,3,Roman Malin-Hiscock,"It's just something that we've made up of your most money, you know exists just as numbers on the fucking party mix.",-2.0,0
 2,49,4,Roman Malin-Hiscock,"We're on a computer so, you know, it is it doesn't really it doesn't really matter.",0.0,0
 2,49,5,Roman Malin-Hiscock,"This is the thing that matters is the environmental change because it has a media Empire and I think we're going to have to bear the brunt of some sort of economic damage in some way or some degree of public spending for Jesus wearing again,",-1.0,1
 2,51,0,Kistella Ka Ki CHAN,"Innovation is not just the responsibility of government because I know that's what's up.",1.0,1
 2,52,0,Roman Malin-Hiscock,"Yeah, I know.",0.0,0
-2,52,1,Roman Malin-Hiscock,"It's like I'm not playing as well.",0.0,0
+2,52,1,Roman Malin-Hiscock,"It's I'm not playing as well.",0.0,0
 2,52,2,Roman Malin-Hiscock,"It's that you just kind of go change with the relationship between you know, the key influences in the people with power which is you know, the business man on the government if the business if people see the future of economic gain to be in Environmental Protection with your investing in sustainable and green Industries and invested in green energy through a series of incentives and public pressure and that type of thing then it's nice the way.",1.0,1
 2,52,3,Roman Malin-Hiscock,"The future entrepreneurs and cats listen money makers and decision-makers woke up.",1.0,1
 2,54,0,Killary Lui,"ulcer reaction",-1.0,0

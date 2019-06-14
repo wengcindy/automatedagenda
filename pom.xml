@@ -66,6 +66,11 @@
             <artifactId>opencsv</artifactId>
             <version>4.6</version>
         </dependency>
+        <dependency>
+            <groupId>com.aylien.textapi</groupId>
+            <artifactId>client</artifactId>
+            <version>0.6.0</version>
+        </dependency>
     </dependencies>
 
 

@@ -5,34 +5,34 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 0,10,1,Alissa Sanchez,"I think that by allowing to do that people are going to be less likely to recur report when there's actually crime and I think it just instills fear in general.",-2.0,-1
 0,11,0,Grant Seiter,"I think one thing is the question kind of the central tendency around it is whether or not they should be allowed to this really doesn't have any bearing on whether or not I think that should be the case.",0.0,0
 0,11,1,Grant Seiter,"But at least looking at at National Law should our Enforcement Officers be allowed to enforce it think I see the opposite side of this this",1.0,1
-0,12,0,Georgia Smith,"I think that maybe not police officers should have the right but like certain officials should have the right to do this.",0.0,1
-0,14,0,Alissa Sanchez,"Georgia when you say other kind of officials like who",1.0,0
-0,15,0,Georgia Smith,"I think it probably be like the government would have to issue.",0.0,1
+0,12,0,Georgia Smith,"I think that maybe not police officers should have the right but certain officials should have the right to do this.",0.0,1
+0,14,0,Alissa Sanchez,"Georgia when you say other kind of officials who",0.0,0
+0,15,0,Georgia Smith,"I think it probably be the government would have to issue.",0.0,1
 0,15,1,Georgia Smith,"I mean not exactly Polly every single police officer.",0.0,1
-0,15,2,Georgia Smith,"But if there's like immigration Specialist or like what it was like at the border or something like that just those kinds of officials not necessarily like everyday police officers that I was going over for like speeding tickets or what not.",1.0,1
-1,16,0,Georgia Smith,"I think this goes on like the last one except his four Witnesses.",0.0,-1
-1,16,1,Georgia Smith,"I think it'll make that Witnesses won't come forward if they are illegal or not, but it could have like a Sentimental effect on the outcome of the crime if they don't come forward.",-1.0,-1
+0,15,2,Georgia Smith,"But if there's immigration Specialist or what it was at the border or something that just those kinds of officials not necessarily everyday police officers that I was going over for speeding tickets or what not.",0.0,1
+1,16,0,Georgia Smith,"I think this goes on the last one except his four Witnesses.",0.0,-1
+1,16,1,Georgia Smith,"I think it'll make that Witnesses won't come forward if they are illegal or not, but it could have a Sentimental effect on the outcome of the crime if they don't come forward.",-1.0,-1
 1,17,0,Mason Turner,"Yeah, I agree with that cuz I got to witness you're not doing anything wrong at the moment.",1.0,-1
 1,17,1,Mason Turner,"So I don't see why we should put somebody in Jeopardy for coming out and speaking and I'm saying I saw some wrong.",0.0,-1
-1,18,0,Ben LeBlanc,"Turn on the last item that we did or knowing like the identity of the person was something that was important for either victim or witness.",0.0,0
+1,18,0,Ben LeBlanc,"Turn on the last item that we did or knowing the identity of the person was something that was important for either victim or witness.",0.0,0
 1,18,1,Ben LeBlanc,"And so I don't know how much their immigration status effects of being able to contact them, you know if they needed to go to trial.",0.0,0
 1,18,2,Ben LeBlanc,"Would be but there was something that they told us to think about.",0.0,0
 1,19,0,Grant Seiter,"Additionally, we talked a lot about the incentives of whether or not they would want to testify and while I think there's a strong argument for that.",-2.0,-1
 1,19,1,Grant Seiter,"Unfortunately, there aren't any numbers or statistic for this has been measured if it actually isn't sent it.",-1.0,0
 1,19,2,Grant Seiter,"So it's hard to say what the actual outcome could be.",0.0,0
-1,19,3,Grant Seiter,"It could be that in general people are just good people and there could be some even if your if you ask the question of whether whether immigration status is there could be some kind of witness protection involved in that where they give like a Alleyway time.",1.0,1
-1,20,0,Alissa Sanchez,"I guess kind of almost a question I have for the group is like when I look at this and I'm kind of thinking through it.",1.0,0
-1,20,1,Alissa Sanchez,"I wonder like what's the actual benefit of asking for immigration status?",2.0,0
-1,20,2,Alissa Sanchez,"Like it kind of seems like just a way to profile someone during like what's the actual benefit of even asking in the first place?",1.0,0
-1,21,0,Grant Seiter,"I mean kind of like been mentioned earlier there wouldn't be an information asymmetry between the witness add.",-1.0,1
+1,19,3,Grant Seiter,"It could be that in general people are just good people and there could be some even if your if you ask the question of whether whether immigration status is there could be some kind of witness protection involved in that where they give a Alleyway time.",1.0,1
+1,20,0,Alissa Sanchez,"I guess kind of almost a question I have for the group is when I look at this and I'm kind of thinking through it.",1.0,0
+1,20,1,Alissa Sanchez,"I wonder what's the actual benefit of asking for immigration status?",2.0,0
+1,20,2,Alissa Sanchez,"Like it kind of seems just a way to profile someone during what's the actual benefit of even asking in the first place?",1.0,0
+1,21,0,Grant Seiter,"I mean kind of been mentioned earlier there wouldn't be an information asymmetry between the witness add.",-1.0,1
 1,21,1,Grant Seiter,"Let's say the jury who is hearing this this testimony, you know, the person is from their able to be contacted by the prosecution and the defense you're a witness to a crime and police officers taking down your record on the report, but you failed to provide contact information or what your legal status is Perhaps Perhaps, that could be negatively if he's in are called to testify by the end of the prosecution in court.",1.0,1
-1,22,0,Georgia Smith,"A plant also brings up is that like criminal activity involving undocumented immigrants will be reduced if like law enforcement is consistent with identifying these immigrants.",-1.0,1
-2,23,0,Georgia Smith,"I think to me like the biggest argument here is that like if these immigrants should have the same rights to?",-1.0,0
-2,23,1,Georgia Smith,"like have the same rights as actual citizens vs. Non-citizens.",0.0,0
+1,22,0,Georgia Smith,"A plant also brings up is that criminal activity involving undocumented immigrants will be reduced if law enforcement is consistent with identifying these immigrants.",-1.0,1
+2,23,0,Georgia Smith,"I think to me the biggest argument here is that if these immigrants should have the same rights to?",-1.0,0
+2,23,1,Georgia Smith,"have the same rights as actual citizens vs. Non-citizens.",0.0,0
 2,24,0,Ben LeBlanc,"So I'm not exactly sure who appoints the lawyers, but it may be that I'll just ask that does anyone know who appointed lawyers.",0.0,0
-2,24,1,Ben LeBlanc,"I know that it said like in National states are is it cities that appointees lawyers?",0.0,0
+2,24,1,Ben LeBlanc,"I know that it said in National states are is it cities that appointees lawyers?",0.0,0
 2,24,2,Ben LeBlanc,"If it is then it could just be that it's a local, you know Case by case.",0.0,0
-2,25,0,Grant Seiter,"It depends on what level by of course, they're at so if it's like a local civil court, it will be your local defendant.",0.0,0
+2,25,0,Grant Seiter,"It depends on what level by of course, they're at so if it's a local civil court, it will be your local defendant.",0.0,0
 2,25,1,Grant Seiter,"So your York County Defender that's employed by the simple populace.",1.0,0
 2,26,0,Hunter Seay,"I agree with you Georgia.",1.0,0
 2,26,1,Hunter Seay,"But the one thing about them having equal rights is we're going to have to ever turn all going to have to have.",0.0,-1
@@ -40,7 +40,7 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 2,26,3,Hunter Seay,"So if it's going to get really costly and it's going to cost a lot more than if they were to just not.",0.0,-1
 2,26,4,Hunter Seay,"Be appointed by.",0.0,-1
 2,26,5,Hunter Seay,"Bayou a drink",0.0,0
-2,27,0,Mason Turner,"Yeah, I kind of agree with Hunter like one of the main issues with this is just the money factor of it.",1.0,-1
+2,27,0,Mason Turner,"Yeah, I kind of agree with Hunter one of the main issues with this is just the money factor of it.",1.0,-1
 2,27,1,Mason Turner,"Like should we be spending our own tax dollars on allowing these people to have public defenders?",1.0,-1
 2,28,0,Ryan Paxton,"Haven to go along with Mason I do agree with the money factor.",1.0,-1
 2,28,1,Ryan Paxton,"I think that we have kind of other needs that we need to be focusing on and we need to focus on our self.",0.0,-1
@@ -48,8 +48,8 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 2,29,0,Grant Seiter,"The other thing is just looking back at the history of due process law in the Fifth Amendment is what establishes who gets the right to a jury and the phrasing on that is just no person shall it doesn't no person shall be deprived of life liberty or property without due process of law.",-2.0,1
 2,29,1,Grant Seiter,"So if you're looking at that literally person doesn't just imply Citizen and also that has roots in the Magna Carta which was kind of the governing document of of all of Europe in the new world also was use the term free man to describe person.",1.0,1
 2,29,2,Grant Seiter,"So if you're taking those literally than that would also include undocumented immigrants.",0.0,1
-2,30,0,Alissa Sanchez,"I can like see the perspective that comes from the money issue because we do have to think about like what we're spending our tax dollars on but I think Grant also just made a really good.",2.0,1
-2,30,1,Alissa Sanchez,"We also kind of have to think about like what our values are is a country and you know like freedom for everyone and not just ourselves and I think that that at least on that side of the argument is something that people argue is that they should have that right because they are also human beings with human rights who should be represented in court.",1.0,1
+2,30,0,Alissa Sanchez,"I can see the perspective that comes from the money issue because we do have to think about what we're spending our tax dollars on but I think Grant also just made a really good.",2.0,1
+2,30,1,Alissa Sanchez,"We also kind of have to think about what our values are is a country and you know freedom for everyone and not just ourselves and I think that that at least on that side of the argument is something that people argue is that they should have that right because they are also human beings with human rights who should be represented in court.",1.0,1
 2,31,0,Grant Seiter,"Under the money saying all so you kind of have to look at the the cost-benefit analysis of an if they do get deported.",0.0,0
 2,31,1,Grant Seiter,"What's the cost of that?",0.0,0
 2,31,2,Grant Seiter,"You know, and it could it be the case that over the grand scheme of things if I'm down to undocumented immigrants are appointed counsel and the majority are allowed to stay or whatever.",1.0,0
@@ -61,23 +61,23 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 2,32,2,Ben LeBlanc,"And so there's something out there.",0.0,0
 3,33,0,Davis Wendzel,"I think it's similar to the last question where we have to just decide if we think that us taxpayers should pay for an immigrant's.",0.0,0
 3,33,1,Davis Wendzel,"Immigrants needs that are not paying taxes.",0.0,0
-3,34,0,Grant Seiter,"Another thing on that same point is if the funding is going to nonprofits whose purpose is to provide counsel for illegal Immigration Services, then why is it necessary that there's funding anyhow, I could be like a if y'all if you're familiar with, so would you like the court appointed special Advocate?",1.0,-1
-3,34,1,Grant Seiter,"That's for I think it's children abused and neglected children to their volunteer lawyers who spend their time advocating for these people so there could be a system that could exist like that for illegal Immigration Services.",-1.0,-1
+3,34,0,Grant Seiter,"Another thing on that same point is if the funding is going to nonprofits whose purpose is to provide counsel for illegal Immigration Services, then why is it necessary that there's funding anyhow, I could be a if y'all if you're familiar with, so would you the court appointed special Advocate?",1.0,-1
+3,34,1,Grant Seiter,"That's for I think it's children abused and neglected children to their volunteer lawyers who spend their time advocating for these people so there could be a system that could exist that for illegal Immigration Services.",-1.0,-1
 3,34,2,Grant Seiter,"I think there's probably not interested long enough lawyers the United States back to work.",0.0,-1
-3,35,0,Ben LeBlanc,"Yeah, I guess for me that's got a cool thing about, you know, American General and you know nonprofits is that you know, people think it's a good thing then they will donate their own money towards it about taking that like we shouldn't be no use different services in at local local T's shouldn't use nonprofit services.",1.0,-1
+3,35,0,Ben LeBlanc,"Yeah, I guess for me that's got a cool thing about, you know, American General and you know nonprofits is that you know, people think it's a good thing then they will donate their own money towards it about taking that we shouldn't be no use different services in at local local T's shouldn't use nonprofit services.",1.0,-1
 3,35,1,Ben LeBlanc,"But you know, if people want this to happen, then you know, they can give their own money I guess.",0.0,-1
-3,36,0,Georgia Smith,"I think of anything for this too is that a lot of illegal immigrants always say it's hard to become a citizen like there's not enough services or they don't know how to do it.",-2.0,1
-3,36,1,Georgia Smith,"So nonprofits like this could go they got for them, becoming actually legal citizens.",1.0,1
+3,36,0,Georgia Smith,"I think of anything for this too is that a lot of illegal immigrants always say it's hard to become a citizen there's not enough services or they don't know how to do it.",-2.0,1
+3,36,1,Georgia Smith,"So nonprofits this could go they got for them, becoming actually legal citizens.",1.0,1
 3,37,0,Grant Seiter,"Open with been on this one of my general simplified philosophy of government is just to do things that the majority of people want to do, but can't do it alone.",0.0,-1
 3,37,1,Grant Seiter,"And I think this is probably something that we could do alone.",0.0,-1
-3,38,0,Hunter Seay,"Yeah, I totally agree with Grant just because I feel like it does aloe in like if local government was like if states were required to pay for the funding.",1.0,-1
-3,38,1,Hunter Seay,"I feel like I feel like States like Texas and like like near Mexico would just be paying all the money and then how is that fair to the like the rest?",1.0,-1
-3,38,2,Hunter Seay,"I was afraid of Texas compared to like New York or you're not going to get a whole bunch of illegal immigrants.",1.0,-1
-3,39,0,Davis Wendzel,"I definitely agree with that, but I'm just not sure I like the local government would be donating and I agree that we think that these people should have their own money and give it to the give it to these nonprofits, but I'm just not sure how many people would donate their own money to these nonprofits over like a cancer hospital or Children's Hospital.",1.0,1
+3,38,0,Hunter Seay,"Yeah, I totally agree with Grant just because I feel it does aloe in if local government was if states were required to pay for the funding.",1.0,-1
+3,38,1,Hunter Seay,"I feel I feel States Texas and like near Mexico would just be paying all the money and then how is that fair to the the rest?",1.0,-1
+3,38,2,Hunter Seay,"I was afraid of Texas compared to New York or you're not going to get a whole bunch of illegal immigrants.",0.0,-1
+3,39,0,Davis Wendzel,"I definitely agree with that, but I'm just not sure I the local government would be donating and I agree that we think that these people should have their own money and give it to the give it to these nonprofits, but I'm just not sure how many people would donate their own money to these nonprofits over a cancer hospital or Children's Hospital.",0.0,1
 3,40,0,Cali Cox,"I okay, so I haven't spoken yet, but kind of going off what bed and Grant and a couple of them had said I I think another thing you have to look at is that it's saying local government should allocate this and seeing that immigration and a lot of these issues are having to do a federal laws and a lot more of this about a federal level.",-2.0,1
 3,40,1,Cali Cox,"I think that that is something you should think about and think about what our local government should be funding.",0.0,1
 3,41,0,Grant Seiter,"Yeah, so I kind of think it's interesting that you brought that up Connor about there being a difference between locality.",1.0,0
-3,41,1,Grant Seiter,"So like how is that fair to the immigrants in New Mexico supposed to taxes?",1.0,1
+3,41,1,Grant Seiter,"So how is that fair to the immigrants in New Mexico supposed to taxes?",1.0,1
 3,41,2,Grant Seiter,"The reason that's interesting is because that's the same debate that we had in the 90s with abortion rights in life.",-1.0,0
 3,41,3,Grant Seiter,"Sternberg V Carhart and Roe v. Wade was there these localities with Planned Parenthood who were offering abortion proceedings, but some people can't travel, you know, a hundred miles to get an abortion.",-1.0,0
 3,41,4,Grant Seiter,"So how is that fair to the person in Cincinnati who can versus the one in Ohio who can't Cincinnati?",1.0,0
@@ -92,18 +92,18 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 4,45,3,Grant Seiter,"It's for the folks who have been here for 10 years because of our lack of security before so what do we do with those some, you know, 20 million immigrants",-1.0,0
 4,46,0,Cali Cox,"I kind of agree with Davis in the fact that if they've already been here for 10 years and I mean there's obviously something not lining up that they will be a faster process for this if they've already been here for 10 years and they're not able to become a legal citizen then.",1.0,-1
 4,46,1,Cali Cox,"Yeah, then there's just a whole nother problem.",-1.0,-1
-4,47,0,Alissa Sanchez,"I really like the point that Grant brought up.",1.0,1
-4,47,1,Alissa Sanchez,"I think that one of the main things is they already here and a lot of them to have children that have grown up in our system and then they're running into this problem would like to putting their parents and then the sometimes like the children also getting deported if they were born here, then they're not going to do it just like causes that tension and so I definitely think that this is a tricky one because it is hard to measure how long they've been here.",0.0,1
+4,47,0,Alissa Sanchez,"I really the point that Grant brought up.",0.0,1
+4,47,1,Alissa Sanchez,"I think that one of the main things is they already here and a lot of them to have children that have grown up in our system and then they're running into this problem would to putting their parents and then the sometimes the children also getting deported if they were born here, then they're not going to do it just causes that tension and so I definitely think that this is a tricky one because it is hard to measure how long they've been here.",-1.0,1
 4,47,2,Alissa Sanchez,"But at the same time it could probably help with some of the tension that were even experiencing now with people getting deported.",1.0,1
 4,47,3,Alissa Sanchez,"So I definitely think that's something to eat.",0.0,1
-4,48,0,Grant Seiter,"So my question for you all maybe would be what are the cons to not granting immunity to these individuals is it just a symptom are like nationalism or patriotism patriotism her sense of justice that perhaps it's because they were legal in the first place.",0.0,1
+4,48,0,Grant Seiter,"So my question for you all maybe would be what are the cons to not granting immunity to these individuals is it just a symptom are nationalism or patriotism patriotism her sense of justice that perhaps it's because they were legal in the first place.",0.0,1
 4,48,1,Grant Seiter,"They don't deserve it, But what are the cons of granting took citizenship?",-1.0,1
 4,48,2,Grant Seiter,"They're already here.",0.0,1
 4,49,0,Ryan Paxton,"El Gran that's really good question, but I also think there's an underlying issue.",2.0,0
 4,49,1,Ryan Paxton,"I think that.",0.0,0
 4,50,0,Mason Turner,"Tell me I'm not really saying I have a problem with it.",1.0,-1
 4,50,1,Mason Turner,"It's just mainly the fact that there's no way to regulate it because you know looking back at the other issues if victims aren't willing to come forward because they don't want their status speed seen that how can we assume that when they come over here?",1.0,-1
-4,50,2,Mason Turner,"It'll be like, okay, like I've been here since you know 96, so I should be become leave at this point.",0.0,-1
+4,50,2,Mason Turner,"It'll be like, okay, I've been here since you know 96, so I should be become leave at this point.",0.0,-1
 4,51,0,Ben LeBlanc,"Christine McConnell just granted immunity rate for for everyone instead of kind of incentivizes them to come over illegally which could cause all sorts of issues down.",1.0,1
 4,51,1,Ben LeBlanc,"I guess where they're Crossing in that area.",0.0,1
 4,51,2,Ben LeBlanc,"I guess it's kind of hard for me not to be at least a little bit apathetic about the people that are here 10 years cuz if they've been here 10 years and they haven't made a big Ruckus that has it really affected my life.",2.0,1
@@ -113,5 +113,5 @@ Section ID,Speech ID,Sentence ID,Name,Text,MeaningCloud sentiment,True sentiment
 4,52,2,Davis Wendzel,"But these people haven't even tried to learn English or becoming too ingrained in the American culture.",-1.0,-1
 4,52,3,Davis Wendzel,"I just think it's hard to just let them be part of our country.",0.0,-1
 4,53,0,Grant Seiter,"I think the problem with that statement is the fact that if they were to try it goes back to her initial two issues if they were to say hi.",-1.0,0
-4,53,1,Grant Seiter,"I'd like to become a citizen of they and they were to do so in that the Houston office and they say, oh, where do you live you live here, but you're a document that goes back to the same kind of circular problem as before they would have to be deported until their papers went through the process.",0.0,0
+4,53,1,Grant Seiter,"I'd to become a citizen of they and they were to do so in that the Houston office and they say, oh, where do you live you live here, but you're a document that goes back to the same kind of circular problem as before they would have to be deported until their papers went through the process.",-1.0,0
 4,53,2,Grant Seiter,"So in trying to become a citizen if they've already been here for 10 years, they're subject to the same legal proceedings of someone who came over yesterday.",1.0,0
