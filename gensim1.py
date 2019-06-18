@@ -1,13 +1,28 @@
 import json
 import numpy
-from gensim import corpora
+import re
+import numpy as np
+import pandas as pd
+from pprint import pprint
+
+# Gensim
+import gensim
+import gensim.corpora as corpora
+from gensim.utils import simple_preprocess
+from gensim.models import CoherenceModel
 from gensim.models import Word2Vec
 from gensim.models import Phrases
+
+# nltk
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 nltk.download('stopwords')
 nltk.download('punkt')
+
+import warnings
+warnings.filterwarnings("ignore",category=DeprecationWarning)
+
 
 
 # read pros/cons file
@@ -22,13 +37,21 @@ proconLabel = []
 
 for i in obj:
 	for j in range(len(obj[i])):
+		pro = ""
+		con = ""
 		for k in range(len(obj[i][j]['pro'])):
-			pros.append(obj[i][j]['pro'][k])
-			proconLabel.append('pro')
+			pro += obj[i][j]['pro'][k] + " "
 
 		for k in range(len(obj[i][j]['con'])):
-			cons.append(obj[i][j]['con'][k])
-			proconLabel.append('con')
+			con += obj[i][j]['con'][k] + " "
+		pros.append(pro)
+		cons.append(con)
+		# print(pro)
+		# print("\n")
+		# print(con)
+		# print("\n")
+		proconLabel.append('pro')
+		proconLabel.append('con')
 
 allWords = pros + cons
 proTokenized = [word_tokenize(i) for i in pros]
@@ -49,9 +72,17 @@ for sentences in conTokenized:
 # combine pro and con keywords
 allKeywords = proKeywords + conKeywords
 
+# remove punctuation
+def sent_to_words(sentences):
+    for sentence in sentences:
+        yield(gensim.utils.simple_preprocess(str(sentence), deacc=True))
+allKeywords = list(sent_to_words(allKeywords))
+
 # save pros/cons as csv
 arr = numpy.asarray(allWords)
 numpy.savetxt("fullText.csv", arr, delimiter=",",fmt='%s')
+arr = numpy.asarray(allKeywords)
+numpy.savetxt("allKeywords.csv", arr, delimiter=",",fmt='%s')
 arr = numpy.asarray(proconLabel)
 numpy.savetxt("proconLabel.csv", arr, delimiter=",",fmt='%s')
 
