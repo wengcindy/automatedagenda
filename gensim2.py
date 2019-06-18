@@ -1,6 +1,7 @@
 import os
 import logging
 import csv
+import pandas as pd
 
 # Gensim
 from gensim import similarities
@@ -39,16 +40,19 @@ def sentenceSimilarity(dictionary, corpus, text):
   # lsi.save('/tmp/model.lsi')
   # lsi = models.LsiModel.load('/tmp/model.lsi')
 
+  # convert the query (sentence from transcript) to LSI space
   doc = text
   vec_bow = dictionary.doc2bow(doc.split())
-  vec_lsi = lsi[vec_bow]  # convert the query to LSI space
+  vec_lsi = lsi[vec_bow]
 
-  index = similarities.MatrixSimilarity(lsi[corpus])  # transform corpus to LSI space and index it
+  # transform corpus to LSI space and index it
+  index = similarities.MatrixSimilarity(lsi[corpus])  
 
   # save and load index
   # index.save('/Users/cindyweng/Documents/Duke/Automated agenda management/test.index')
   # index = similarities.MatrixSimilarity.load('/Users/cindyweng/Documents/Duke/Automated agenda management/test.index')
 
+  # perform a similarity query against the corpus
   sims = index[vec_lsi]
   sims = sorted(enumerate(sims), key=lambda item: -item[1])
   # print(sims)
@@ -67,6 +71,8 @@ def sentenceSimilarity(dictionary, corpus, text):
       for row in reader: # each row is a list
           proconLabel.append(row)
 
+  # determine if sentence is pro/con based on top 3 sentence similarity matches
+  label = ""
   procount = 0
   concount = 0
   for i in range(3):
@@ -78,11 +84,33 @@ def sentenceSimilarity(dictionary, corpus, text):
       procount += 1
     else:
       concount += 1
-  print(text)
-  print(clean_text[sims[i][0]])
+  # print(text)
+  # print(clean_text[sims[i][0]])
   if procount > concount:
-    print('PRO')
+    # print('PRO')
+    label = "PRO"
   else:
-    print('CON')
-  print("\n")
-  print("\n")
+    # print('CON')
+    label = "CON"
+  # print("\n")
+  # print("\n")
+
+  return label
+
+# append pro/con label to existing csv file
+transcript = []
+labels = []
+
+with open("2019winter.csv") as csvfile:
+  reader = csv.reader(csvfile) 
+  next(reader)
+  for row in reader: 
+      joined = ' '.join(row)
+      labels.append(sentenceSimilarity(dictionary, corpus, joined))
+      
+df = pd.read_csv("2019winter.csv")
+df['Pros/Cons'] = labels
+
+df.to_csv('2019winterlabeled.csv')
+
+
