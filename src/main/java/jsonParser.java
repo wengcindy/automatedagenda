@@ -1,17 +1,22 @@
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.BreakIterator;
 import java.util.*;
 
 import com.aylien.textapi.TextAPIClient;
 import com.aylien.textapi.TextAPIException;
 import com.aylien.textapi.parameters.SentimentParams;
-import com.aylien.textapi.responses.Sentiment;
+//import com.aylien.textapi.responses.Sentiment;
 import com.opencsv.CSVReader;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
 import kong.unirest.UnirestException;
+import com.google.cloud.language.v1.AnalyzeSentimentResponse;
+import com.google.cloud.language.v1.Document;
+import com.google.cloud.language.v1.LanguageServiceClient;
+//import com.google.cloud.language.v1.Sentiment;
 import org.json.*;
   
 public class jsonParser {
@@ -19,9 +24,9 @@ public class jsonParser {
     final static boolean IGNORE_EMPTY_MESSAGES = true;
     static boolean IMPORT_LABELS = true;
     static boolean IMPORT_PROS_CONS = true;
-    final static String path = "20190430-finance.json";
+    final static String path = "2019winter.json";
     final static String oldCSVPath = ".";
-    static String API = "Aylien";  // "MeaningCloud"
+    static String API = "Mashape";  // "MeaningCloud", "Aylien", "Google", "None"
 
     static int credits = 0;
     static Map<String, Map<Integer, Integer>> oldLabels = new HashMap<>();
@@ -66,13 +71,17 @@ public class jsonParser {
      * @return
      */
     public static List<String> splitSentences(String speech) {
-        String[] parts = speech.split(".");
+        speech = speech.replaceAll("vs.", "vs");  // Temporary fix
+        speech = speech.replaceAll("v.", "v");  // Temporary fix
+        speech = speech.replaceAll("\\.", ". ");  // Temporary fix
+        BreakIterator iterator = BreakIterator.getSentenceInstance(Locale.US);
+        iterator.setText(speech);
         ArrayList<String> sentences = new ArrayList<>();
-        for (int i=0; i<parts.length; i++) {
-            if (parts[i].replaceAll(" ", "").isEmpty()) {
-                continue;
-            }
-            sentences.add(parts[i] + (i == parts.length - 1? ".": ""));
+        int start = iterator.first();
+        for (int end = iterator.next();
+                end != BreakIterator.DONE;
+                start = end, end = iterator.next()) {
+            sentences.add(speech.substring(start, end));
         }
         return sentences;
     }
@@ -89,7 +98,7 @@ public class jsonParser {
         boolean isEmpty;  // If the message is empty
 
         String sentimentTag;  // Sentiment (P+, P, NEU, N, N+, NONE)
-        int sentimentScore;  // -2 (N+) to 2 (P+)
+        double sentimentScore;  // -2 (N+) to 2 (P+)
         boolean isAgreement;  // Agreement/disagreement tags from sentiment analysis (highly inaccurate)
         //boolean isSubjective;  // Subjective/objective tags from sentiment analysis
         double sentimentConfidence;  // int 0-100
@@ -126,11 +135,7 @@ public class jsonParser {
             List<String> sentences = splitSentences(message);
             if (sentences.size() <= 1 || API.equals("MeaningCloud")) {  // Single sentence
                 Object result = null;
-                try {
-                    result = getSentimentResult();
-                } catch (TextAPIException e) {
-                    throw new NullPointerException("Program terminated due to fatal error with sentiment analysis.");
-                }
+                result = getSentimentResult();
                 if (result == null) {
                     throw new NullPointerException("Program terminated due to fatal error with sentiment analysis.");
                 }
@@ -145,12 +150,21 @@ public class jsonParser {
             }
         }
 
-        private Object getSentimentResult() throws TextAPIException {  // Use Object since return type can be different
+        private Object getSentimentResult() {  // Use Object since return type can be different
             if (API.equals("MeaningCloud")) {
                 return getMeaningCloudSentimentResult();
             }
             if (API.equals("Aylien")) {
                 return getAylienSentimentResult();
+            }
+            if (API.equals("Google")) {
+                return getGoogleSentimentResult();
+            }
+            if (API.equals("Mashape")) {
+                return getMashapeSentimentResult();
+            }
+            if (API.equals("None")) {
+                return 0;
             }
             return null;
         }
@@ -191,13 +205,80 @@ public class jsonParser {
             return result;
         }
 
-        private Object getAylienSentimentResult() throws TextAPIException {
-            TextAPIClient client = new TextAPIClient("8db45b6f", "2540278b2b689af12afdd077570273dd");
+        private Object getAylienSentimentResult() {
+            //TextAPIClient client = new TextAPIClient("8db45b6f", "2540278b2b689af12afdd077570273dd");
+            TextAPIClient client = new TextAPIClient("aa3648fd", "054023fd42acd5a6533e5e63ee001f23");
             SentimentParams.Builder builder = SentimentParams.newBuilder();
             builder.setText(message);
-            Sentiment sentiment = client.sentiment(builder.build());
+
+            com.aylien.textapi.responses.Sentiment sentiment = null;
+            while (sentiment == null) {
+                try {
+                    sentiment = client.sentiment(builder.build());
+                } catch (TextAPIException e) {
+                    if (e.getMessage().startsWith("com.aylien.textapi.TextAPIException: Too Many Requests:") && e.getMessage().contains("out of 60 hits per minute")) {
+                        sentiment = null;
+                    } else {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }
+            }
             //System.out.println(sentiment);
             return sentiment;
+        }
+
+        private Object getGoogleSentimentResult() {
+            try (LanguageServiceClient language = LanguageServiceClient.create()) {
+                Document doc = Document.newBuilder()
+                        .setContent(message)
+                        .setType(Document.Type.PLAIN_TEXT)
+                        .build();
+                AnalyzeSentimentResponse response = language.analyzeSentiment(doc);
+                com.google.cloud.language.v1.Sentiment sentiment = response.getDocumentSentiment();
+                if (sentiment == null) {
+                    System.out.println("No sentiment found");
+                    return null;
+                } else {
+                    return sentiment;
+                }
+                //return sentiment;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        private Object getMashapeSentimentResult() {
+            HttpResponse<JsonNode> response = null;
+            JSONObject result = null;
+            while (result == null) {
+                try {
+                    response = Unirest.post("http://text-processing.com/api/sentiment/")
+                            .field("text", message)
+                            .asJson();
+                } catch (UnirestException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+                if (!response.isSuccess()) {
+                    System.out.println("Error " + response.getStatus() + " when running Sentiment Analysis: " + response.getStatusText());
+                    return null;
+                }
+                result = response.getBody().getObject();
+                /*String msg = result.getJSONObject("status").getString("msg");
+                if (!msg.equals("OK")) {
+                    if (msg.equals("Request rate limit exceeded")) {
+                        result = null;
+                    } else {
+                        System.out.println("API error when running Sentiment Analysis: " + msg);
+                        return null;
+                    }
+                } else {
+                    credits = result.getJSONObject("status").getInt("remaining_credits");
+                }*/
+            }
+            return result;
         }
 
         private void processSentimentResult(Object result) {  // Use Object since return type can be different
@@ -206,6 +287,15 @@ public class jsonParser {
             }
             if (API.equals("Aylien")) {
                 processAylienSentimentResult(result);
+            }
+            if (API.equals("Google")) {
+                processGoogleSentimentResult(result);
+            }
+            if (API.equals("Mashape")) {
+                processMashapeSentimentResult(result);
+            }
+            if (API.equals("None")) {
+                sentimentScore = 0;
             }
         }
 
@@ -236,16 +326,31 @@ public class jsonParser {
         }
 
         private void processAylienSentimentResult(Object objResult) {
-            Sentiment result = (Sentiment) objResult;
-            message =
+            com.aylien.textapi.responses.Sentiment result = (com.aylien.textapi.responses.Sentiment) objResult;
+            message = result.getText();
             sentimentTag = result.getPolarity();
             List<String> sentiments = Arrays.asList("negative", "neutral", "positive");
             sentimentScore = sentiments.indexOf(sentimentTag) - 1;
             sentimentConfidence = result.getPolarityConfidence();
         }
 
+        private void processGoogleSentimentResult(Object objResult) {
+            com.google.cloud.language.v1.Sentiment result = (com.google.cloud.language.v1.Sentiment) objResult;
+            sentimentScore = result.getScore();
+            sentimentConfidence = 1;  // Unsupported
+        }
+
+        private void processMashapeSentimentResult(Object objResult) {
+            JSONObject result = (JSONObject) objResult;
+            sentimentTag = result.getString("label");
+            // Convert letter score to numeric score
+            List<String> sentiments = Arrays.asList("neg", "neutral", "pos");
+            sentimentScore = sentiments.indexOf(sentimentTag) - 1;
+            sentimentConfidence = result.getJSONObject("probability").getDouble(sentimentTag);
+        }
+
         public boolean isMultiSentence() {
-            return sentences == null || sentences.isEmpty();
+            return !(sentences == null || sentences.isEmpty());
         }
     }
 
