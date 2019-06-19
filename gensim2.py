@@ -1,3 +1,9 @@
+"""
+Creates LSI model from dictionary and DTM, using it for sentence similarity comparisons to the transcript.
+Uses latent semantic indexing, an info-retrieving technique that uses latent semantic analysis.
+Run gensim1.py before running this.
+"""
+
 import os
 import logging
 import csv
@@ -5,8 +11,6 @@ import pandas as pd
 
 # Gensim
 from gensim import similarities
-from gensim.models import LsiModel
-from gensim.models.coherencemodel import CoherenceModel
 from gensim import corpora
 from gensim import models
 
@@ -21,7 +25,8 @@ if (os.path.exists("/Users/cindyweng/Documents/Duke/Automated agenda management/
 else:
    print("Run gensim1.py to generate data set")
 
-def sentenceSimilarity(dictionary, corpus, text):
+# topic can be one of the agenda labels: electoralReform, campaignFinanceReform, immigration
+def sentenceSimilarity(dictionary, corpus, text, topic):
   # initialize model - go through text once and compute document frequencies of all its features
   tfidf = models.TfidfModel(corpus)
 
@@ -57,7 +62,7 @@ def sentenceSimilarity(dictionary, corpus, text):
   sims = sorted(enumerate(sims), key=lambda item: -item[1])
   # print(sims)
 
-  # load pre-made list of pros/cons
+  # load pre-made agenda of pros/cons
   clean_text = []
   with open("fullText.csv") as csvfile:
       reader = csv.reader(csvfile) 
@@ -71,46 +76,55 @@ def sentenceSimilarity(dictionary, corpus, text):
       for row in reader: # each row is a list
           proconLabel.append(row)
 
+  # load pros/cons and topic labels of pre-made list
+  proConTopicLabel = []
+  with open("proConTopicLabel.csv") as csvfile:
+      reader = csv.reader(csvfile) 
+      for row in reader: # each row is a list
+          proConTopicLabel.append(row)
+
   # determine if sentence is pro/con based on top 3 sentence similarity matches
+  # only compares sentence to agenda item of the same topic
   label = ""
   procount = 0
   concount = 0
-  for i in range(3):
-    # print("\n")
-    # print(proconLabel[sims[i][0]])
-    # print(clean_text[sims[i][0]])
-    # print("\n")
-    if proconLabel[sims[i][0]][0] == 'pro':
-      procount += 1
-    else:
-      concount += 1
-  # print(text)
-  # print(clean_text[sims[i][0]])
+  for i in range(len(sims)):
+    if proConTopicLabel[1][sims[i][0]] == topic:
+      # print("\n")
+      # print(proconLabel[sims[i][0]])
+      # print(clean_text[sims[i][0]])
+      # print("\n")
+      # print(proConTopicLabel[1][sims[i][0]])
+      # print(proConTopicLabel[0][sims[i][0]])
+      if proConTopicLabel[0][sims[i][0]] == 'pro':
+        procount += 1
+      else:
+        concount += 1
+    break
   if procount > concount:
-    # print('PRO')
     label = "PRO"
   else:
-    # print('CON')
     label = "CON"
-  # print("\n")
-  # print("\n")
 
   return label
 
-# append pro/con label to existing csv file
+
+# save pro/con label to csv file with other stats
 transcript = []
 labels = []
 
-with open("2019winter.csv") as csvfile:
+filename = "2019winter"
+topic = "immigration"
+with open(filename + ".csv") as csvfile:
   reader = csv.reader(csvfile) 
   next(reader)
   for row in reader: 
       joined = ' '.join(row)
-      labels.append(sentenceSimilarity(dictionary, corpus, joined))
+      labels.append(sentenceSimilarity(dictionary, corpus, joined, topic))
       
-df = pd.read_csv("2019winter.csv")
-df['Pros/Cons'] = labels
+df = pd.read_csv(filename + ".csv")
+df['Pros or con'] = labels
 
-df.to_csv('2019winterlabeled.csv')
+df.to_csv(filename + "labeled.csv")
 
 
