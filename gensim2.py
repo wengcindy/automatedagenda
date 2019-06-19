@@ -26,7 +26,7 @@ else:
    print("Run gensim1.py to generate data set")
 
 # topic can be one of the agenda labels: electoralReform, campaignFinanceReform, immigration
-def sentenceSimilarity(dictionary, corpus, text, topic):
+def sentenceSimilarity(dictionary, corpus, text, topic, section):
   # initialize model - go through text once and compute document frequencies of all its features
   tfidf = models.TfidfModel(corpus)
 
@@ -69,13 +69,6 @@ def sentenceSimilarity(dictionary, corpus, text, topic):
       for row in reader: # each row is a list
           clean_text.append(row)
 
-  # load pros/cons labels of pre-made list
-  proconLabel = []
-  with open("proconLabel.csv") as csvfile:
-      reader = csv.reader(csvfile) 
-      for row in reader: # each row is a list
-          proconLabel.append(row)
-
   # load pros/cons and topic labels of pre-made list
   proConTopicLabel = []
   with open("proConTopicLabel.csv") as csvfile:
@@ -84,12 +77,13 @@ def sentenceSimilarity(dictionary, corpus, text, topic):
           proConTopicLabel.append(row)
 
   # determine if sentence is pro/con based on top 3 sentence similarity matches
-  # only compares sentence to agenda item of the same topic
+  # only compares sentence to agenda item of the same topic and same section
   label = ""
   procount = 0
   concount = 0
+
   for i in range(len(sims)):
-    if proConTopicLabel[1][sims[i][0]] == topic:
+    if proConTopicLabel[1][sims[i][0]] == topic and proConTopicLabel[2][sims[i][0]] == section:
       # print("\n")
       # print(proconLabel[sims[i][0]])
       # print(clean_text[sims[i][0]])
@@ -100,11 +94,12 @@ def sentenceSimilarity(dictionary, corpus, text, topic):
         procount += 1
       else:
         concount += 1
-    break
-  if procount > concount:
-    label = "PRO"
-  else:
-    label = "CON"
+      break
+  if section.startswith('A'):
+    if procount > concount:
+      label = "pro"
+    else:
+      label = "con"
 
   return label
 
@@ -120,10 +115,10 @@ with open(filename + ".csv") as csvfile:
   next(reader)
   for row in reader: 
       joined = ' '.join(row)
-      labels.append(sentenceSimilarity(dictionary, corpus, joined, topic))
+      labels.append(sentenceSimilarity(dictionary, corpus, row[1], topic, row[6]))
       
 df = pd.read_csv(filename + ".csv")
-df['Pros or con'] = labels
+df['Pro or con'] = labels
 
 df.to_csv(filename + "labeled.csv")
 
