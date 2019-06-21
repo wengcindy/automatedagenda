@@ -268,7 +268,6 @@ def read(filename):
 		if IMPORT_PROS_CONS:
 			initialize_transcripts(session_name)
 
-		# TODO: Create transcript CSV
 		out2 = open(session_name + '_transcript.csv', 'w')
 		transcript_writer = csv.writer(out2)
 		transcript_writer.writerow(transcript_headers)
@@ -290,8 +289,8 @@ def read(filename):
 				print("New section")
 				print("---------")
 
-			# processSpeech(singleSpeech, stats);
-			for j in range(len(speech['data'])):
+			process_speech(speech, stats)
+			"""for j in range(len(speech['data'])):
 				# print(obj['2019winter2']['audioData'][audio]['data'][j]['text'])
 				# print("\n")
 				csv_writer.writerow([speech['username'], \
@@ -300,11 +299,34 @@ def read(filename):
 					speech['endTime'], \
 					speech['endTime']/1000 - speech['startTime']/1000, \
 					session_name, \
-					match_section(section_dict, speech['startTime'], speech['endTime'])])
+					match_section(section_dict, speech['startTime'], speech['endTime'])])"""
 
 		out2.close()
 
 	out.close()
+
+
+def process_speech(speech, stats):
+	"""
+	Process a single speech, i.e. an audio of one person speaking.
+    Add information of each sentence in the speech.
+	:param speech: Speech data as JSON object
+	:param stats: Stats recorder with ongoing records from the session
+	"""
+	id = speech['id']
+	username = speech['username'].replace(',', '')  # Prevent messing up with CSV
+
+	# Each audio might be broken down into several sentences.
+	# Combine all sentences
+	speech_text = ''.join([sentence['text'] for sentence in speech['data']])
+	if len(speech_text) == 0 and IGNORE_EMPTY_MESSAGES:
+		return
+
+	# Remove adverb "like"'s to prevent messing up sentiments
+	speech_text.replace(' like ', '')
+
+	stats.add_speech(id, username, speech_text,
+					 speech['startTime'], speech['endTime'])
 
 
 def get_section_times(section_data):
