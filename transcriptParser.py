@@ -9,6 +9,9 @@ IGNORE_EMPTY_MESSAGES = True
 IMPORT_LABELS = True
 IMPORT_PROS_CONS = True
 filename = "20190430-finance"
+#topic = "campaignFinanceReform"
+topics_dict = {"2019winter": "immigration", "2019baylor": "immigration", "20190430-finance": "campaignFinanceReform"}
+topic = topics_dict[filename]
 old_CSV_path = "."
 headers = ["Session",
 		   "Section",

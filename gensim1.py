@@ -99,6 +99,7 @@ for sentences in conTokenized:
 
 # combine pro and con keywords
 allKeywords = proKeywords + conKeywords
+print(allKeywords)
 
 # remove punctuation
 def sent_to_words(sentences):
@@ -120,8 +121,10 @@ numpy.savetxt("proConTopicLabel.csv", arr, delimiter=",",fmt='%s')
 
 # save dictionary (each unique term given index)
 dictionary = corpora.Dictionary(allKeywords)
-dictionary.save('/Users/cindyweng/Documents/Duke/Automated agenda management/dictionary.dict')
+#dictionary.save('/Users/cindyweng/Documents/Duke/Automated agenda management/dictionary.dict')
+dictionary.save('dictionary.dict')
 
 # convert to document term matrix (unique index, term frequency) and save
 corpus = [dictionary.doc2bow(text) for text in allKeywords]
-corpora.MmCorpus.serialize('/Users/cindyweng/Documents/Duke/Automated agenda management/corpus.mm', corpus)
+#corpora.MmCorpus.serialize('/Users/cindyweng/Documents/Duke/Automated agenda management/corpus.mm', corpus)
+corpora.MmCorpus.serialize('corpus.mm', corpus)
