@@ -42,7 +42,7 @@ class SimilarityTester:
         # for doc in corpus_lsi:
         # 	print(doc)
 
-    def similarity_query(self, text):
+    def similarity_query(self, text, topic, section):
         """
         Perform a similarity query of a text against the entire corpus.
         Returns list of words (as indexes) sorted by similarity.
@@ -65,7 +65,39 @@ class SimilarityTester:
         sims = index[vec_lsi]
         sims = sorted(enumerate(sims), key=lambda item: -item[1])
         # print(sims)
-        return sims
+
+        # load pros/cons and topic labels of pre-made list
+        proConTopicLabel = []
+        with open("proConTopicLabel.csv") as csvfile:
+            reader = csv.reader(csvfile)
+            for row in reader: # each row is a list
+                proConTopicLabel.append(row)
+
+        # determine if sentence is pro/con based on top 3 sentence similarity matches
+        # only compares sentence to agenda item of the same topic and same section
+        label = ""
+        procount = 0
+        concount = 0
+
+        for i in range(len(sims)):
+            if proConTopicLabel[1][sims[i][0]] == topic and proConTopicLabel[2][sims[i][0]] == section:
+                # print("\n")
+                # print(proconLabel[sims[i][0]])
+                # print(clean_text[sims[i][0]])
+                # print("\n")
+                # print(proConTopicLabel[1][sims[i][0]])
+                # print(proConTopicLabel[0][sims[i][0]])
+                if proConTopicLabel[0][sims[i][0]] == 'pro':
+                    procount += 1
+                else:
+                    concount += 1
+                break
+        if procount > concount:
+            label = "pro"
+        else:
+            label = "con"
+
+        return label
 
 
 st = SimilarityTester()
