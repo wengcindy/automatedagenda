@@ -1,7 +1,7 @@
 import json
 import csv
 import pandas as pd
-from Lib import os
+import os
 from nltk.tokenize import sent_tokenize
 
 VERBOSE = True
@@ -96,9 +96,6 @@ class StatsRecorder:
 		self.num_spoken_weighted = 0
 		self.time_spoken_weighted = 0
 
-		self.csv_writer.flush()
-		self.transcript_writer.flush()
-
 	def add_speech(self, id, user, speech, start_time, end_time):
 		"""
 		Add a new speech, i.e. an entire audio of one person speaking.
@@ -127,8 +124,7 @@ class StatsRecorder:
 		self.sentences = sent_tokenize(speech)
 		speech = ''.join(self.sentences)
 		for sentence in self.sentences:
-			#self.add_sentence(sentence, len(sentence) / len(speech))
-			pass
+			self.add_sentence(sentence, len(sentence) / len(speech))
 
 		self.label = self.read_label()
 		self.true_sentiments = self.read_true_sentiments()
@@ -162,7 +158,7 @@ class StatsRecorder:
 			self.num_spoken_cons += length_ratio * score
 			self.time_spoken_cons += self.speech_time * length_ratio * score
 		if VERBOSE:
-			print("Pros/cons label: " + score)
+			print("Pros/cons label: " + str(score))
 		return score
 
 	def read_label(self):
@@ -255,12 +251,12 @@ def read(filename):
 	# parse json
 	obj = json.loads(transcript)
 
-	out = open(filename + '.csv', 'w')
+	out = open(filename + '.csv', 'w', newline='')
 	csv_writer = csv.writer(out)
 	csv_writer.writerow(headers)
 
 	if IMPORT_LABELS:
-		initialize_labels()
+		initialize_labels(sessions=obj.keys())
 
 	for session_name, session_obj in obj.items():
 		section_dict = get_section_times(session_obj['sectionData'])
@@ -268,7 +264,7 @@ def read(filename):
 		if IMPORT_PROS_CONS:
 			initialize_transcripts(session_name)
 
-		out2 = open(session_name + '_transcript.csv', 'w')
+		out2 = open(session_name + '_transcript.csv', 'w', newline='')
 		transcript_writer = csv.writer(out2)
 		transcript_writer.writerow(transcript_headers)
 
@@ -285,6 +281,8 @@ def read(filename):
 			if new_section != current_section:
 				current_section = new_section
 				stats.new_section(new_section)
+				out.flush()
+				out2.flush()
 				print("---------")
 				print("New section")
 				print("---------")
@@ -366,7 +364,7 @@ def match_section(section_dict, start, end):
 	return None
 
 
-def initialize_labels():
+def initialize_labels(sessions=None):
 	"""
 	Read labels from past CSVs, if applicable.
 	Assumes CSV file is stored in oldCSVPath and named as the file name.
@@ -375,14 +373,33 @@ def initialize_labels():
 	speech_id_header = "Speech ID"
 	label_header = "Label of current status"
 
-	df = pd.read_csv(os.path.join(old_CSV_path, filename + ".csv"))
-	for i in range(len(df[session_header])):
-		session = df[session_header][i]
-		speech_id = df[speech_id_header][i]
-		label = df[label_header][i]
-		if session not in old_labels:
-			old_labels[session] = {}
-		old_labels[session][speech_id] = label
+	try:
+		df = pd.read_csv(os.path.join(old_CSV_path, filename + ".csv"))
+		for i in range(len(df[session_header])):
+			session = df[session_header][i]
+			sessions.add(session)
+			speech_id = df[speech_id_header][i]
+			label = df[label_header][i]
+			if session not in old_labels:
+				old_labels[session] = {}
+			old_labels[session][speech_id] = label
+	except Exception:
+		pass
+
+	# Read labels from each session's CSV for compatibility
+	if not sessions:
+		return
+	for session in sessions:
+		try:
+			df = pd.read_csv(os.path.join(old_CSV_path, session + ".csv"))
+			for i in range(len(df[speech_id_header])):
+				speech_id = df[speech_id_header][i]
+				label = df[label_header][i]
+				if session not in old_labels:
+					old_labels[session] = {}
+				old_labels[session][speech_id] = label
+		except Exception:
+			pass
 
 
 def initialize_transcripts(session):
@@ -401,16 +418,16 @@ def initialize_transcripts(session):
 		speech_id = df[speech_id_header][i]
 		sentence_id = df[sentence_id_header][i]
 		label = df[label_header][i]
-		if session not in old_labels:
-			old_labels[session] = {}
-		if speech_id not in old_labels[session]:
-			old_labels[session][speech_id] = {}
-		old_labels[session][speech_id][sentence_id] = label
+		if session not in old_sentiments:
+			old_sentiments[session] = {}
+		if speech_id not in old_sentiments[session]:
+			old_sentiments[session][speech_id] = {}
+		old_sentiments[session][speech_id][sentence_id] = label
 
 
 if __name__ == "__main__":
-	IMPORT_LABELS = (input("Do you want to input conversation labels manually? (Y/N):") == "Y")
-	IMPORT_PROS_CONS = (input("Do you want to input true sentiment (pros/cons) labels manually? (Y/N):") == "Y")
+	IMPORT_LABELS = (input("Do you want to input conversation labels manually? (Y/N):") != "Y")
+	IMPORT_PROS_CONS = (input("Do you want to input true sentiment (pros/cons) labels manually? (Y/N):") != "Y")
 
 	read(filename)
 
