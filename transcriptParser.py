@@ -2,6 +2,7 @@ import json
 import csv
 import pandas as pd
 from Lib import os
+from nltk.tokenize import sent_tokenize
 
 VERBOSE = True
 IGNORE_EMPTY_MESSAGES = True
@@ -9,7 +10,24 @@ IMPORT_LABELS = True
 IMPORT_PROS_CONS = True
 filename = "20190430-finance"
 old_CSV_path = "."
-headers = ["username", "text", "start time", "end time","total time", "Session", "section"]
+headers = ["Session",
+		   "Section",
+		   "Speech ID",
+		   "Username",
+		   "Text",
+		   "Start time",
+		   "End time",
+		   "Individual speaking time",
+		   "Individual sentiment",
+		   "# people spoken",
+		   "Total speaking time",
+		   "Pros # ppl spoken",
+		   "Pros speaking time",
+		   "Cons # ppl spoken",
+		   "Cons speaking time",
+		   "# ppl spoken (weighted)",
+		   "Total speaking time (weighted)",
+		   "Label of current status"]
 transcript_headers = ["Section ID",
 					  "Speech ID",
 					  "Sentence ID",
@@ -20,6 +38,215 @@ transcript_headers = ["Section ID",
 
 old_labels = {}
 old_sentiments = {}
+
+
+class StatsRecorder:
+	def __init__(self, session, csv_writer, transcript_writer):
+		self.session = session
+		self.csv_writer = csv_writer
+		self.transcript_writer = transcript_writer
+		self.section = ''
+
+		# For current speech
+		self.username = None
+		self.audio_id = 0
+		self.start_time = 0
+		self.end_time = 0
+		self.speech_time = 0
+		self.weighted_sentiment = 0
+		self.label = 0
+		self.sentences = []
+		self.predicted_sentiments = []
+		self.true_sentiments = []
+
+		# For the entire section
+		self.section_id = 0
+		self.num_spoken = 0
+		self.time_spoken = 0
+		self.num_spoken_pros = 0
+		self.time_spoken_pros = 0
+		self.num_spoken_cons = 0
+		self.time_spoken_cons = 0
+		self.num_spoken_weighted = 0
+		self.time_spoken_weighted = 0
+
+	def new_section(self, section_name):
+		self.section = section_name
+
+		# For current speech
+		self.username = None
+		self.audio_id = 0
+		self.start_time = 0
+		self.end_time = 0
+		self.speech_time = 0
+		self.weighted_sentiment = 0
+		self.label = 0
+		self.sentences = []
+		self.predicted_sentiments = []
+		self.true_sentiments = []
+
+		# For the entire section
+		self.section_id = 0
+		self.num_spoken = 0
+		self.time_spoken = 0
+		self.num_spoken_pros = 0
+		self.time_spoken_pros = 0
+		self.num_spoken_cons = 0
+		self.time_spoken_cons = 0
+		self.num_spoken_weighted = 0
+		self.time_spoken_weighted = 0
+
+		self.csv_writer.flush()
+		self.transcript_writer.flush()
+
+	def add_speech(self, id, user, speech, start_time, end_time):
+		"""
+		Add a new speech, i.e. an entire audio of one person speaking.
+
+        Break down the speech into sentences and analyze the pro/cons of each.
+
+        At the end, obtains the label either by user input or importing.
+
+		:param id: ID of speech from JSON (for importing labels)
+		:param user: Name of current speaker
+		:param speech: Text of entire speech
+		:param start_time: Start time of this speech, as long nubmer
+		:param end_time: End time of this speech, as long nubmer
+		:return:
+		"""
+		self.username = user
+		self.audio_id = id
+		self.start_time = start_time
+		self.end_time = end_time
+		self.speech_time = end_time/1000 - start_time/1000
+		self.weighted_sentiment = 0
+
+		self.num_spoken += 1
+		self.time_spoken += self.speech_time
+
+		self.sentences = sent_tokenize(speech)
+		speech = ''.join(self.sentences)
+		for sentence in self.sentences:
+			#self.add_sentence(sentence, len(sentence) / len(speech))
+			pass
+
+		self.label = self.read_label()
+		self.true_sentiments = self.read_true_sentiments()
+		self.write_csv()
+		self.write_transcript()
+
+	def add_sentence(self, sentence, length_ratio):
+		"""
+		Add a new sentence. Increment corresponding counters.
+
+        The increase is according to the proportion this sentence
+        takes in the person's entire speech in terms of characters.
+        For example, a 40-character sentence about pros in the
+        entire speech of 100 characters will contribute 0.4 to
+        the number of people spoken about pros.
+		:param sentence: Sentence as string
+		:param length_ratio: Proportion of this sentence's length to the
+			total length of that person's speech
+		:return: Score of this sentence (-1 to 1)
+		"""
+		print(self.username + ":" + sentence)
+		score = 0  # USE gensim2 HERE
+		self.predicted_sentiments.append(score)
+		self.weighted_sentiment += length_ratio * score
+		self.num_spoken_weighted += length_ratio * score
+		self.time_spoken_weighted += self.speech_time * length_ratio * score
+		if score > 0:
+			self.num_spoken_pros += length_ratio * score
+			self.time_spoken_pros += self.speech_time * length_ratio * score
+		else:
+			self.num_spoken_cons += length_ratio * score
+			self.time_spoken_cons += self.speech_time * length_ratio * score
+		if VERBOSE:
+			print("Pros/cons label: " + score)
+		return score
+
+	def read_label(self):
+		"""
+		Reads the label for current speech (status at the end of this),
+        either from user input or from existing sources.
+		"""
+		if IMPORT_LABELS:
+			try:
+				return old_labels[self.session][self.audio_id]
+			except KeyError:
+				pass
+
+		s = input("Please enter label: 1 for sufficient pros, 2 for sufficient cons, 3 or 12 for sufficient in both: ")
+		if "3" in s:
+			return 3
+		else:
+			return (1 if "1" in s else 0) + (2 if "2" in s else 0)
+
+	def read_true_sentiments(self):
+		"""
+		Reads the true sentiment for current sentence, either from user
+		input or from existing sources.
+		:return: List of true sentiment scores (-1 or 1) for each sentence
+		"""
+		scores = []
+		sentence_num = len(self.sentences)
+		if IMPORT_PROS_CONS:
+			try:
+				for i in range(sentence_num):
+					scores.append(old_sentiments[self.session][self.audio_id][i])
+				return scores
+			except KeyError:
+				pass
+
+		s = ''
+		while len(s) != sentence_num:
+			s = input("Please enter %d sentiment scores: 1 for positive, 0 for negative, space for neutral (e.g.1 010):" % sentence_num)
+		for c in s:
+			scores.append(1 if c == '1' else (-1 if c == '0' else 0))
+		return scores
+
+	def write_csv(self):
+		"""
+		Write current statistics to the CSV output file.
+		Called after each speech.
+		"""
+		self.csv_writer.writerow([
+			self.session,
+			self.section,
+			self.audio_id,
+			self.username,
+			' '.join(self.sentences),
+			self.start_time,
+			self.end_time,
+			self.speech_time,
+			self.weighted_sentiment,
+			self.num_spoken,
+			self.time_spoken,
+			self.num_spoken_pros,
+			self.time_spoken_pros,
+			self.num_spoken_cons,
+			self.time_spoken_cons,
+			self.num_spoken_weighted,
+			self.time_spoken_weighted,
+			self.label
+		])
+
+	def write_transcript(self):
+		"""
+		Write transcripts and sentiment scores to the CSV output file.
+		Called after each speech, but adds all sentences in separate entries.
+		"""
+		for i in range(len(self.sentences)):
+			self.transcript_writer.writerow([
+				self.section,
+				self.audio_id,
+				i,
+				self.username,
+				'"' + self.sentences[i] + '"',
+				self.predicted_sentiments[i],
+				self.true_sentiments[i]
+			])
+
 
 def read(filename):
 	with open(filename + '.json', 'r') as myfile:
@@ -47,6 +274,8 @@ def read(filename):
 		transcript_writer.writerow(transcript_headers)
 
 		current_section = None
+		stats = StatsRecorder(session_name, csv_writer, transcript_writer)
+
 		for speech in session_obj['audioData']:
 			# Checks if a new section needs to be started, and whether
 			# this speech should count at all
@@ -56,7 +285,7 @@ def read(filename):
 				continue
 			if new_section != current_section:
 				current_section = new_section
-				# stats.newSection();
+				stats.new_section(new_section)
 				print("---------")
 				print("New section")
 				print("---------")
