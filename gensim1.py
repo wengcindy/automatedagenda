@@ -37,8 +37,9 @@ with open("agendas.json", 'r') as myfile:
 
 # parse agenda file
 obj = json.loads(data)
-pros = []
-cons = []
+#pros = []
+#cons = []
+sentences = []  # Stores each pro/con as a separate element in the list
 # label if item is pro or con
 proconLabel = []
 # label topic of item
@@ -46,11 +47,23 @@ topicLabel = []
 # label section of item
 sectionLabel = []
 
-allWords = []
+#allWords = []
 
 for i in obj:
 	for j in range(len(obj[i])):
-		pro = ""
+		#for k in range(len(obj[i][j]['pro'])):
+		for pro in obj[i][j]['pro']:
+			sentences.append(pro.lower())
+			topicLabel.append(i)
+			sectionLabel.append("A" + str(j+1))
+			proconLabel.append("pro")
+		for con in obj[i][j]['con']:
+			sentences.append(con.lower())
+			topicLabel.append(i)
+			sectionLabel.append("A" + str(j+1))
+			proconLabel.append("con")
+
+		"""pro = ""
 		con = ""
 		for k in range(len(obj[i][j]['pro'])):
 			pro += obj[i][j]['pro'][k].lower() + " "
@@ -90,47 +103,55 @@ for i in obj:
 		# print(con)
 		# print("\n")
 		proconLabel.append('pro')
-		proconLabel.append('con')
+		proconLabel.append('con')"""
 
 
-proTokenized = [word_tokenize(i) for i in pros]
-conTokenized = [word_tokenize(i) for i in cons]
-proKeywords = []
-conKeywords = []
+#proTokenized = [word_tokenize(i) for i in pros]
+#conTokenized = [word_tokenize(i) for i in cons]
+sentences_tokenized = [word_tokenize(i) for i in sentences]
+#proKeywords = []
+#conKeywords = []
+allKeywords = []
 
 stop_words = stopwords.words('english')
 stop_words.extend(['could', 'would', 'and'])
 
 # get pro sentence keywords
-for sentences in proTokenized:
-	proKeywords.append([word for word in sentences if word not in stop_words])
+#for sentences in proTokenized:
+#	proKeywords.append([word for word in sentences if word not in stop_words])
 
 # get con sentence keywords
-for sentences in conTokenized:
-	conKeywords.append([word for word in sentences if word not in stop_words])
+#for sentences in conTokenized:
+#	conKeywords.append([word for word in sentences if word not in stop_words])
+for sentence in sentences_tokenized:
+	allKeywords.append([word for word in sentence if word not in stop_words])
 
 # combine pro and con keywords
-allKeywords = proKeywords + conKeywords
+#allKeywords = proKeywords + conKeywords
 
 # remove punctuation
 def sent_to_words(sentences):
     for sentence in sentences:
         yield(gensim.utils.simple_preprocess(str(sentence), deacc=True))
 allKeywords = list(sent_to_words(allKeywords))
-allWords = list(sent_to_words(allWords))
+#allWords = list(sent_to_words(allWords))
 
-allWordsJoined = []
-for sentence in allWords:
-	allWordsJoined.append(' '.join(sentence))
+#allWordsJoined = []
+#print(allWords)
+#for sentence in allWords:
+	#print(len(sentence))
+#	allWordsJoined.append(' '.join(sentence))
 
 # print(allWordsJoined)
 
 # save pros/cons as csv
-arr = numpy.asarray(allWordsJoined)
-numpy.savetxt("fullText.csv", arr, delimiter=",",fmt='%s')
+#arr = numpy.asarray(allWordsJoined)
+#numpy.savetxt("fullText.csv", arr, delimiter=",",fmt='%s')
 arr = numpy.asarray(allKeywords)
 numpy.savetxt("allKeywords.csv", arr, delimiter=",",fmt='%s')
-arr = numpy.array([proconLabel, topicLabel, sectionLabel, allWordsJoined])
+#arr = numpy.array([proconLabel, topicLabel, sectionLabel, allWordsJoined])
+allWords = [' '.join(words) for words in list(sent_to_words(sentences))]
+arr = numpy.array([proconLabel, topicLabel, sectionLabel, allWords])
 numpy.savetxt("proConTopicLabel.csv", arr, delimiter=",",fmt='%s')
 
 # from pprint import pprint  # pretty-printer

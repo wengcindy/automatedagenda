@@ -3,12 +3,13 @@ import csv
 import pandas as pd
 import os
 from nltk.tokenize import sent_tokenize
+from gensim2 import SimilarityTester
 
 VERBOSE = True
 IGNORE_EMPTY_MESSAGES = True
 IMPORT_LABELS = True
 IMPORT_PROS_CONS = True
-filename = "20190430-finance"
+filename = "2019winter"
 #topic = "campaignFinanceReform"
 topics_dict = {"2019winter": "immigration", "2019baylor": "immigration", "20190430-finance": "campaignFinanceReform"}
 topic = topics_dict[filename]
@@ -49,6 +50,7 @@ class StatsRecorder:
 		self.csv_writer = csv_writer
 		self.transcript_writer = transcript_writer
 		self.section = ''
+		self.st = SimilarityTester()
 
 		# For current speech
 		self.username = None
@@ -149,7 +151,10 @@ class StatsRecorder:
 		:return: Score of this sentence (-1 to 1)
 		"""
 		print(self.username + ":" + sentence)
-		score = 0  # USE gensim2 HERE
+		#score = 0  # USE gensim2 HERE
+		label = self.st.similarity_query(sentence, topic, self.section)
+		score = 1 if label == "pro" else -1 if label == "con" else 0
+
 		self.predicted_sentiments.append(score)
 		self.weighted_sentiment += length_ratio * score
 		self.num_spoken_weighted += length_ratio * score
