@@ -1,5 +1,7 @@
 import json
 import csv
+import math
+
 import pandas as pd
 import os
 from nltk.tokenize import sent_tokenize
@@ -9,7 +11,7 @@ VERBOSE = True
 IGNORE_EMPTY_MESSAGES = True
 IMPORT_LABELS = True
 IMPORT_PROS_CONS = True
-filename = "2019winter"
+filename = "2019baylor"
 #topic = "campaignFinanceReform"
 topics_dict = {"2019winter": "immigration", "2019baylor": "immigration", "20190430-finance": "campaignFinanceReform"}
 topic = topics_dict[filename]
@@ -38,7 +40,14 @@ transcript_headers = ["Section ID",
 					  "User Name",
 					  "Text",
 					  "Predicted pros/cons label",
-					  "True sentiment"]
+					  "Best match",
+					  "Similarity Best match",
+					  "Best match in topic",
+					  "Similarity Best match in topic",
+					  "Best match in section",
+					  "Similarity Best match in section",
+					  "True sentiment",
+					  "True match"]
 
 old_labels = {}
 old_sentiments = {}
@@ -62,7 +71,14 @@ class StatsRecorder:
 		self.label = 0
 		self.sentences = []
 		self.predicted_sentiments = []
+		self.best_matches = []
+		self.best_matches_similarities = []
+		self.best_matches_same_topic = []
+		self.best_matches_same_topic_similarities = []
+		self.best_matches_same_section = []
+		self.best_matches_same_section_similarities = []
 		self.true_sentiments = []
+		self.true_match = []
 
 		# For the entire section
 		self.section_id = 0
@@ -88,7 +104,14 @@ class StatsRecorder:
 		self.label = 0
 		self.sentences = []
 		self.predicted_sentiments = []
+		self.best_matches = []
+		self.best_matches_similarities = []
+		self.best_matches_same_topic = []
+		self.best_matches_same_topic_similarities = []
+		self.best_matches_same_section = []
+		self.best_matches_same_section_similarities = []
 		self.true_sentiments = []
+		self.true_matches = []
 
 		# For the entire section
 		self.section_id = 0
@@ -122,17 +145,28 @@ class StatsRecorder:
 		self.end_time = end_time
 		self.speech_time = end_time/1000 - start_time/1000
 		self.weighted_sentiment = 0
+		self.predicted_sentiments = []
+		self.best_matches = []
+		self.best_matches_similarities = []
+		self.best_matches_same_topic = []
+		self.best_matches_same_topic_similarities = []
+		self.best_matches_same_section = []
+		self.best_matches_same_section_similarities = []
 
 		self.num_spoken += 1
 		self.time_spoken += self.speech_time
 
-		self.sentences = sent_tokenize(speech)
-		speech = ''.join(self.sentences)
-		for sentence in self.sentences:
-			self.add_sentence(sentence, len(sentence) / len(speech))
+		#self.sentences = sent_tokenize(speech)
+		#speech = ''.join(self.sentences)
+		#for sentence in self.sentences:
+		#	self.add_sentence(sentence, len(sentence) / len(speech))
+		self.sentences = [speech]  # For compatibility
+		self.add_sentence(speech, 1)  # Temporary fix
 
 		self.label = self.read_label()
-		self.true_sentiments = self.read_true_sentiments()
+		self.true_sentiments, self.true_matches = self.read_true_sentiments()
+		#input("Press enter to continue...")  # TODO: Debug
+		#print()
 		self.write_csv()
 		self.write_transcript()
 
@@ -152,10 +186,18 @@ class StatsRecorder:
 		"""
 		print(self.username + ":" + sentence)
 		#score = 0  # USE gensim2 HERE
-		label = self.st.similarity_query(sentence, topic, self.section)
-		score = 1 if label == "pro" else -1 if label == "con" else 0
+		label, match, match_sim, match_topic, match_topic_sim, match_section, match_section_sim = self.st.similarity_query(
+			sentence, topic, self.section)
+		labels = ["con", "neutral", "pro"]
+		score = labels.index(label) - 1
 
 		self.predicted_sentiments.append(score)
+		self.best_matches.append(match)
+		self.best_matches_similarities.append(match_sim)
+		self.best_matches_same_topic.append(match_topic)
+		self.best_matches_same_topic_similarities.append(match_topic_sim)
+		self.best_matches_same_section.append(match_section)
+		self.best_matches_same_section_similarities.append(match_section_sim)
 		self.weighted_sentiment += length_ratio * score
 		self.num_spoken_weighted += length_ratio * score
 		self.time_spoken_weighted += self.speech_time * length_ratio * score
@@ -172,7 +214,7 @@ class StatsRecorder:
 	def read_label(self):
 		"""
 		Reads the label for current speech (status at the end of this),
-        either from user input or from existing sources.
+		either from user input or from existing sources.
 		"""
 		if IMPORT_LABELS:
 			try:
@@ -196,18 +238,28 @@ class StatsRecorder:
 		sentence_num = len(self.sentences)
 		if IMPORT_PROS_CONS:
 			try:
-				for i in range(sentence_num):
-					scores.append(old_sentiments[self.session][self.audio_id][i])
-				return scores
+				#for i in range(sentence_num):
+				#	scores.append(old_sentiments[self.session][self.audio_id][i])
+				#return scores
+				scores_old = [a for a,b in old_sentiments[self.session][self.audio_id].values()]
+				matches = [b for a,b in old_sentiments[self.session][self.audio_id].values()]
+				if -0.2 <= sum(scores_old) * 1.0 / len(scores_old) <= 0.2:
+					return [0], [matches[0]]
+				else:
+					return [1 if sum(scores_old) > 0 else -1], [matches[0]]
 			except KeyError:
 				pass
 
 		s = ''
 		while len(s) != sentence_num:
-			s = input("Please enter %d sentiment scores: 1 for positive, 0 for negative, space for neutral (e.g.1 010):" % sentence_num)
+			s = input("Please enter %d pro/con scores: 1 for pro, 0 for con, space for neutral (e.g.1 010):" % sentence_num)
 		for c in s:
 			scores.append(1 if c == '1' else (-1 if c == '0' else 0))
-		return scores
+
+		match = input("Please enter the actual pro/con point being discussed (format: \"pro 2\"):")
+		match = ("%s %s %s" % (topic, self.section, match)).strip() if match else ''
+		matches = [match] * sentence_num  # Temporary
+		return scores, matches
 
 	def write_csv(self):
 		"""
@@ -248,7 +300,14 @@ class StatsRecorder:
 				self.username,
 				'"' + self.sentences[i] + '"',
 				self.predicted_sentiments[i],
-				self.true_sentiments[i]
+				self.best_matches[i],
+				self.best_matches_similarities[i],
+				self.best_matches_same_topic[i],
+				self.best_matches_same_topic_similarities[i],
+				self.best_matches_same_section[i],
+				self.best_matches_same_section_similarities[i],
+				self.true_sentiments[i],
+				self.true_matches[i]
 			])
 
 
@@ -420,17 +479,21 @@ def initialize_transcripts(session):
 	speech_id_header = "Speech ID"
 	sentence_id_header = "Sentence ID"
 	label_header = "True sentiment"
+	match_header = "True match"
 
 	df = pd.read_csv(os.path.join(old_CSV_path, session + "_transcript.csv"))
 	for i in range(len(df[speech_id_header])):
 		speech_id = df[speech_id_header][i]
 		sentence_id = df[sentence_id_header][i]
 		label = df[label_header][i]
+		match = df[match_header][i] if match_header in df else ''
+		if not match or match == 'nan' or (type(match) is float and math.isnan(match)):
+			match = ''
 		if session not in old_sentiments:
 			old_sentiments[session] = {}
 		if speech_id not in old_sentiments[session]:
 			old_sentiments[session][speech_id] = {}
-		old_sentiments[session][speech_id][sentence_id] = label
+		old_sentiments[session][speech_id][sentence_id] = (label, match)
 
 
 if __name__ == "__main__":

@@ -47,7 +47,10 @@ class SimilarityTester:
         Perform a similarity query of a text against the entire corpus.
         Returns list of words (as indexes) sorted by similarity.
         :param text: Text
-        :return: List of words
+        :return: - Label (pro or con)
+                 - Best match across all contexts
+                 - Best match among specific topic
+                 - Best match in specific topic and section
         """
         # convert the query (sentence from transcript) to LSI space
         doc = text
@@ -79,23 +82,49 @@ class SimilarityTester:
         procount = 0
         concount = 0
 
+        def get_pro_con_index(index):
+            i = index
+            while i >= 0 and proConTopicLabel[1][i] == proConTopicLabel[1][index] \
+                    and proConTopicLabel[2][i] == proConTopicLabel[2][index] and proConTopicLabel[0][i] == proConTopicLabel[0][index]:
+                i -= 1
+            return index - i
+
+        def generate_string(index):
+            return "%s %s %s %d" % (
+                proConTopicLabel[1][sims[index][0]], proConTopicLabel[2][sims[index][0]],
+                proConTopicLabel[0][sims[index][0]], get_pro_con_index(sims[index][0]))
+
+        best_match = generate_string(0)
+        best_match_similarity = sims[0][1]
+        best_match_same_topic = None
+        best_match_same_topic_similarity = None
+        best_match_same_section = None
+        best_match_same_section_similarity = None
+        print("  %f %s %s %s %s" % (sims[0][1], proConTopicLabel[0][sims[0][0]], proConTopicLabel[1][sims[0][0]], proConTopicLabel[2][sims[0][0]], proConTopicLabel[3][sims[0][0]]))  # DEBUG
         for i in range(len(sims)):
-            if proConTopicLabel[1][sims[i][0]] == topic and proConTopicLabel[2][sims[i][0]] == section:
-                # print("\n")
-                # print(proconLabel[sims[i][0]])
-                # print(clean_text[sims[i][0]])
-                # print("\n")
-                # print(proConTopicLabel[1][sims[i][0]])
-                # print(proConTopicLabel[0][sims[i][0]])
-                if proConTopicLabel[0][sims[i][0]] == 'pro':
-                    procount += 1
-                else:
-                    concount += 1
-                break
-        if procount > concount:
+            if proConTopicLabel[1][sims[i][0]] == topic:
+                if proConTopicLabel[2][sims[i][0]] == section:
+                    if best_match_same_section is None:
+                        best_match_same_section = generate_string(i)
+                        best_match_same_section_similarity = sims[i][1]
+                        if best_match_same_topic is None:
+                            best_match_same_topic = generate_string(i)
+                            best_match_same_topic_similarity = sims[i][1]
+                        if sims[i][1] >= 0.1:
+                            if proConTopicLabel[0][sims[i][0]] == 'pro':  # Only count best match
+                                procount += 1
+                            else:
+                                concount += 1
+                    print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG
+                elif best_match_same_topic is None:
+                    best_match_same_topic = generate_string(i)
+                    best_match_same_topic_similarity = sims[i][1]
+                    print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG
+
+        if procount > concount and procount + concount > 0:
             label = "pro"
         else:
-            label = "con"
+            label = "con" if procount + concount > 0 else "neutral"
 
-        return label
+        return label, best_match, best_match_similarity, best_match_same_topic, best_match_same_topic_similarity, best_match_same_section, best_match_same_section_similarity
 
