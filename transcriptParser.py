@@ -11,7 +11,7 @@ VERBOSE = True
 IGNORE_EMPTY_MESSAGES = True
 IMPORT_LABELS = True
 IMPORT_PROS_CONS = True
-filename = "2019baylor"
+filename = "2019winter"
 #topic = "campaignFinanceReform"
 topics_dict = {"2019winter": "immigration", "2019baylor": "immigration", "20190430-finance": "campaignFinanceReform"}
 topic = topics_dict[filename]
@@ -256,7 +256,9 @@ class StatsRecorder:
 		for c in s:
 			scores.append(1 if c == '1' else (-1 if c == '0' else 0))
 
-		match = input("Please enter the actual pro/con point being discussed (format: \"pro 2\"):")
+		match = input("Please enter the actual pro/con point being discussed (format: \"pro 2\" or \"2\"):")
+		if match and "pro" not in match and "con" not in match:
+			match = "%s %s" % ("pro" if scores[0] == 1 else "con", match)
 		match = ("%s %s %s" % (topic, self.section, match)).strip() if match else ''
 		matches = [match] * sentence_num  # Temporary
 		return scores, matches
