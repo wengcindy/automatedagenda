@@ -11,7 +11,7 @@ VERBOSE = True
 IGNORE_EMPTY_MESSAGES = True
 IMPORT_LABELS = True
 IMPORT_PROS_CONS = True
-filename = "2019winter"
+filename = "2019baylor"
 #topic = "campaignFinanceReform"
 topics_dict = {"2019winter": "immigration", "2019baylor": "immigration", "20190430-finance": "campaignFinanceReform"}
 topic = topics_dict[filename]
@@ -466,7 +466,8 @@ def initialize_labels(sessions=None):
 				label = df[label_header][i]
 				if session not in old_labels:
 					old_labels[session] = {}
-				old_labels[session][speech_id] = label
+				if speech_id not in old_labels[session]:  # Prevent from overridding new data
+					old_labels[session][speech_id] = label
 		except Exception:
 			pass
 
@@ -483,19 +484,24 @@ def initialize_transcripts(session):
 	label_header = "True sentiment"
 	match_header = "True match"
 
-	df = pd.read_csv(os.path.join(old_CSV_path, session + "_transcript.csv"))
-	for i in range(len(df[speech_id_header])):
-		speech_id = df[speech_id_header][i]
-		sentence_id = df[sentence_id_header][i]
-		label = df[label_header][i]
-		match = df[match_header][i] if match_header in df else ''
-		if not match or match == 'nan' or (type(match) is float and math.isnan(match)):
-			match = ''
-		if session not in old_sentiments:
-			old_sentiments[session] = {}
-		if speech_id not in old_sentiments[session]:
-			old_sentiments[session][speech_id] = {}
-		old_sentiments[session][speech_id][sentence_id] = (label, match)
+	if session not in old_sentiments:
+		old_sentiments[session] = {}
+	try:
+		df = pd.read_csv(os.path.join(old_CSV_path, session + "_transcript.csv"))
+		for i in range(len(df[speech_id_header])):
+			speech_id = df[speech_id_header][i]
+			sentence_id = df[sentence_id_header][i]
+			label = df[label_header][i]
+			match = df[match_header][i] if match_header in df else ''
+			if not match or match == 'nan' or (type(match) is float and math.isnan(match)):
+				match = ''
+			if session not in old_sentiments:
+				old_sentiments[session] = {}
+			if speech_id not in old_sentiments[session]:
+				old_sentiments[session][speech_id] = {}
+			old_sentiments[session][speech_id][sentence_id] = (label, match)
+	except Exception:
+		pass
 
 
 if __name__ == "__main__":
