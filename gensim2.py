@@ -42,7 +42,7 @@ class SimilarityTester:
         # for doc in corpus_lsi:
         # 	print(doc)
 
-    def similarity_query(self, text, topic, section):
+    def similarity_query(self, text, topic, section, neutral_cutoff=0.1, best_matches_count=1, verbose=True):
         """
         Perform a similarity query of a text against the entire corpus.
         Returns list of words (as indexes) sorted by similarity.
@@ -100,7 +100,9 @@ class SimilarityTester:
         best_match_same_topic_similarity = None
         best_match_same_section = None
         best_match_same_section_similarity = None
-        print("  %f %s %s %s %s" % (sims[0][1], proConTopicLabel[0][sims[0][0]], proConTopicLabel[1][sims[0][0]], proConTopicLabel[2][sims[0][0]], proConTopicLabel[3][sims[0][0]]))  # DEBUG
+        if verbose:
+            print("  %f %s %s %s %s" % (sims[0][1], proConTopicLabel[0][sims[0][0]], proConTopicLabel[1][sims[0][0]], proConTopicLabel[2][sims[0][0]], proConTopicLabel[3][sims[0][0]]))  # DEBUG
+        matches_counted = 0
         for i in range(len(sims)):
             if proConTopicLabel[1][sims[i][0]] == topic:
                 if proConTopicLabel[2][sims[i][0]] == section:
@@ -110,16 +112,19 @@ class SimilarityTester:
                         if best_match_same_topic is None:
                             best_match_same_topic = generate_string(i)
                             best_match_same_topic_similarity = sims[i][1]
-                        if sims[i][1] >= 0.1:
-                            if proConTopicLabel[0][sims[i][0]] == 'pro':  # Only count best match
-                                procount += 1
-                            else:
-                                concount += 1
-                    print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG
+                    if sims[i][1] >= neutral_cutoff and matches_counted < best_matches_count:
+                        matches_counted += 1
+                        if proConTopicLabel[0][sims[i][0]] == 'pro':
+                            procount += sims[i][1]
+                        else:
+                            concount += sims[i][1]
+                    if verbose:
+                        print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG
                 elif best_match_same_topic is None:
                     best_match_same_topic = generate_string(i)
                     best_match_same_topic_similarity = sims[i][1]
-                    print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG
+                    if verbose:
+                        print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG
 
         if procount > concount and procount + concount > 0:
             label = "pro"

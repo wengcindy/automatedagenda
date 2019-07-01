@@ -53,11 +53,13 @@ for i in obj:
 	for j in range(len(obj[i])):
 		#for k in range(len(obj[i][j]['pro'])):
 		for pro in obj[i][j]['pro']:
+		#for pro in [' '.join(obj[i][j]['pro'])]:
 			sentences.append(pro.lower())
 			topicLabel.append(i)
 			sectionLabel.append("A" + str(j+1))
 			proconLabel.append("pro")
 		for con in obj[i][j]['con']:
+		#for con in [' '.join(obj[i][j]['con'])]:
 			sentences.append(con.lower())
 			topicLabel.append(i)
 			sectionLabel.append("A" + str(j+1))
