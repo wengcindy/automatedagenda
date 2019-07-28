@@ -9,21 +9,25 @@ from nltk.tokenize import sent_tokenize
 import numpy as np
 
 from socket_trial_server import *
+from dataAnalyzer import DataAnalyzer
+
+
+MODE = 'Text Similarity'  # ['Text Similarity', "Sentiment Analysis']
 
 VERBOSE = False
 PRINT_MESSAGES = False
 IGNORE_EMPTY_MESSAGES = True
 IMPORT_LABELS = True
 IMPORT_PROS_CONS = True
+
 NEUTRAL_CUTOFF = 0.1
 BEST_MATCHES_COUNT = 1
 best_matches_count_test = [1] #range(1, 5)
 cutoffs_to_test = np.arange(0, 0.8, 0.1)
 
 filename = ["2019winter", "2019baylor", "20190430-finance"]
-#topic = "campaignFinanceReform"
 topics_dict = {"2019winter": "immigration", "2019baylor": "immigration", "20190430-finance": "campaignFinanceReform"}
-topic = None  #topics_dict[filename]
+topic = None
 old_CSV_path = "."
 headers = ["Session",
 		   "Section",
@@ -61,9 +65,7 @@ transcript_headers = ["Section ID",
 old_labels = {}
 old_sentiments = {}
 
-session_accuracy_records = []  # Per session
-overall_accuracy_records = []  # Global
-accuracies_by_session = {}  # Map session to accuracy
+data_analyzer = DataAnalyzer()
 
 
 class StatsRecorder:
@@ -184,13 +186,7 @@ class StatsRecorder:
 		self.write_transcript()
 
 		for i in range(len(self.predicted_sentiments)):
-			global session_accuracy_records
-			session_accuracy_records.append(
-				1 if (self.predicted_sentiments[i] > 0 and self.true_sentiments[i] > 0
-					  or self.predicted_sentiments[i] == 0 and self.true_sentiments[i] == 0
-					  or self.predicted_sentiments[i] < 0 and self.true_sentiments[i] < 0)
-				else 0
-			)
+			data_analyzer.add(self.predicted_sentiments[i], self.true_sentiments[i])
 
 	def add_sentence(self, sentence, length_ratio):
 		"""
@@ -363,8 +359,7 @@ def read(filename):
 		initialize_labels(sessions=obj.keys())
 
 	for session_name, session_obj in obj.items():
-		global session_accuracy_records
-		session_accuracy_records = []
+		data_analyzer.new_session(session_name)
 
 		section_dict = get_section_times(session_obj['sectionData'])
 
@@ -408,11 +403,6 @@ def read(filename):
 					match_section(section_dict, speech['startTime'], speech['endTime'])])"""
 
 		out2.close()
-
-		global overall_accuracy_records
-		overall_accuracy_records += session_accuracy_records
-		global accuracies_by_session
-		accuracies_by_session[session_name] = sum(session_accuracy_records) * 1.0 / len(session_accuracy_records)
 
 	out.close()
 
@@ -552,31 +542,29 @@ if __name__ == "__main__":
 	IMPORT_LABELS = (input("Do you want to input conversation labels manually? (Y/N):") != "Y")
 	IMPORT_PROS_CONS = (input("Do you want to input true sentiment (pros/cons) labels manually? (Y/N):") != "Y")
 
+	# parse agenda file
 	with open("all_agendas.json", 'r') as myfile:
 		data = myfile.read()
-
-	# parse agenda file
 	data = json.loads(data)
 	initialize(data['data'])
 
+	data_analyzer = DataAnalyzer()
 	best_accuracy = 0
 	best_cutoff = 0
 	best_count = 0
 
 	for cutoff in cutoffs_to_test:
 		for best_matches_count in best_matches_count_test:
-			accuracies_by_session = {}
-			overall_accuracy_records = []
 			NEUTRAL_CUTOFF = cutoff
 			BEST_MATCHES_COUNT = best_matches_count
 
+			data_analyzer.reset()
 			for file in filename:
 				read(file)
 			print("Cutoff = %f, matches = %d" % (cutoff, best_matches_count))
 
-			for session, accuracy in accuracies_by_session.items():
-				print("Session %s \t Accuracy: %f" % (session, accuracy))
-			accuracy = sum(overall_accuracy_records) / len(overall_accuracy_records)
+			data_analyzer.print_session_accuracies()
+			accuracy = data_analyzer.get_accuracy()
 			print("Overall accuracy: %f" % accuracy)
 			if accuracy > best_accuracy:
 				best_accuracy = accuracy
@@ -586,5 +574,10 @@ if __name__ == "__main__":
 	print("Best accuracy: %f, Cutoff: %f, # matches: %d" % (best_accuracy, best_cutoff, best_count))
 	NEUTRAL_CUTOFF = best_cutoff
 	BEST_MATCHES_COUNT = best_count
+	data_analyzer.reset()
 	for file in filename:
 		read(file)  # Repopulate CSV files
+	data_analyzer.print_session_accuracies()
+	data_analyzer.plot_confusion_matrix(
+		title="Confusion Matrix for sentence pro/con classifications using Text Similarity",
+		filename="Cutoff=%f, Matches=%d, Accuracy=%f" % (best_cutoff, best_count, best_accuracy))
