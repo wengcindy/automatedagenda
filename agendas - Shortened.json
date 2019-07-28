@@ -1,0 +1,273 @@
+{
+  "microworkers": [{
+      "name": "Substitute the national popular vote for the Electoral College through a constitutional amendment",
+      "pro": [
+        "Every vote will count in whatever state it is cast.",
+        "Instead of the campaign focusing on a few critical swing states we will have a truly national election."
+      ],
+      "con": [
+        "The constitution is hard to change. There are more urgent priorities.",
+        "The national popular vote will be hard to count with enough accuracy if there is a close election. We could have long recounts on a national basis.",
+        "Without the electoral college, small towns and rural areas would be ignored and candidates would only campaign where there are big concentrations of voters."
+      ]
+    },
+    {
+      "name": "Limit how much candidates can spend on their campaigns",
+      "pro": [
+        "It is important for candidates running for office to spend on their campaigns. But, limits should be set on how much they should be allowed to spend. This would level the playing field for all campaigns.",
+        "Campaign spending limits will discourage corruption—the buying and selling of influence."
+      ],
+      "con": [
+        "Putting limits on campaign spending is a violation of every campaign's First Amendment rights. If candidates can raise money, they should be able to spend it to advance their cause.",
+        "Candidates who are troubled by the cost of campaigns can always choose to observe their own limits. If candidates choose not to employ voluntary spending limits that is their right."
+      ]
+    },
+    {
+      "name": "Switch to Top Two Method",
+      "pro": [
+        "This system would reduce the danger of polarizing outcomes in party primaries by generating one \"blanket\" primary in which all candidates contest",
+        "This would expand the interest of the electorate in the first-round elections and increase voter participation"
+      ],
+      "con": [
+        "These is no evidence this electoral system has reduced more extreme outcomes in politics. There is no evidence of candidates or their platforms becoming more moderate.",
+        "This method could fragment parties if two candidates from the same party have to compete in an intense second-round battle."
+      ]
+    }
+  ],
+  "alicesClass": [{
+      "name": "Move all primary elections to after Labor Day",
+      "pro": [
+        "This would increase the voter turnout in primary elections as it would be closer to election day, when voters pay more attention to campaigns.",
+        "With higher turnout in the primaries, candidates will have to appeal to a broader range of voters and this will lead to more moderate platforms."
+      ],
+      "con": [
+        "Moving primary elections to after Labor Day is not realistic, as parties need sufficient time to prepare for the general election. This will only increase the amount of money spent on primary campaigns.",
+        "This does not guarantee higher turnout among the electorate, as those who are not engaged are not likely to participate anyway."
+      ]
+    },
+    {
+      "name": "Switch to Top Two Method",
+      "pro": [
+        "This system would reduce the danger of polarizing outcomes in party primaries by generating one \"blanket\" primary in which all candidates contest",
+        "This would expand the interest of the electorate in the first-round elections and increase voter participation"
+      ],
+      "con": [
+        "These is no evidence this electoral system has reduced more extreme outcomes in politics. There is no evidence of candidates or their platforms becoming more moderate.",
+        "This method could fragment parties if two candidates from the same party have to compete in an intense second-round battle."
+      ]
+    },
+    {
+      "name": "Switch to Proportional Representation",
+      "pro": [
+        "More proportional results are often considered fairer as they make the distribution of power better reflect distribution of votes.",
+        "The impact of gerrymandering would be lower as there would be larger, multi-seat districts."
+      ],
+      "con": [
+        "This would encourage more coalition governments, meaning instability and excessive influence for those parties that hold the balance of power.",
+        "There would be more gridlock, as with more parties it would be more difficult to reach agreements."
+      ]
+    },
+    {
+      "name": "Substitute the national popular vote for the Electoral College through a constitutional amendment",
+      "pro": [
+        "Every vote will count in whatever state it is cast.",
+        "Instead of the campaign focusing on a few critical swing states we will have a truly national election."
+      ],
+      "con": [
+        "The constitution is hard to change. There are more urgent priorities.",
+        "The national popular vote will be hard to count with enough accuracy if there is a close election. We could have long recounts on a national basis.",
+        "Without the electoral college, small towns and rural areas would be ignored and candidates would only campaign where there are big concentrations of voters."
+      ]
+    },
+    {
+      "name": "Limit how much candidates can spend on their campaigns",
+      "pro": [
+        "It is important for candidates running for office to spend on their campaigns. But, limits should be set on how much they should be allowed to spend. This would level the playing field for all campaigns.",
+        "Campaign spending limits will discourage corruption—the buying and selling of influence."
+      ],
+      "con": [
+        "Putting limits on campaign spending is a violation of every campaign's First Amendment rights. If candidates can raise money, they should be able to spend it to advance their cause.",
+        "Candidates who are troubled by the cost of campaigns can always choose to observe their own limits. If candidates choose not to employ voluntary spending limits that is their right."
+      ]
+    },
+    {
+      "name": "Institute tax-payer funded vouchers for every voter to spend on candidate campaigns",
+      "pro": [
+        "Vouchers would force candidates to focus their campaign on the broader population instead of wealthy individuals and groups",
+        "These vouchers would also encourage the broader public to be more involved in the campaign process, and hopefully increase political interest among voters"
+      ],
+      "con": [
+        "The vouchers benefit incumbents as they have the highest name recognition and would most likely be the ones to receive the most public financing",
+        "Offering vouchers would not draw in people that were not already interested in the campaign process. This would not change the existing campaign process"
+      ]
+    }
+  ],
+  "electoralReform": [{
+      "name": "Move all primary elections to after Labor Day",
+      "pro": [
+        "This would increase the voter turnout in primary elections as it would be closer to election day, when voters pay more attention to campaigns.",
+        "With higher turnout in the primaries, candidates will have to appeal to a broader range of voters and this will lead to more moderate platforms."
+      ],
+      "con": [
+        "Moving primary elections to after Labor Day is not realistic, as parties need sufficient time to prepare for the general election. This will only increase the amount of money spent on primary campaigns.",
+        "This does not guarantee higher turnout among the electorate, as those who are not engaged are not likely to participate anyway."
+      ]
+    },
+    {
+      "name": "Switch to Proportional Representation",
+      "pro": [
+        "More proportional results are often considered fairer as they make the distribution of power better reflect distribution of votes.",
+        "The impact of gerrymandering would be lower as there would be larger, multi-seat districts."
+      ],
+      "con": [
+        "This would encourage more coalition governments, meaning instability and excessive influence for those parties that hold the balance of power.",
+        "There would be more gridlock, as with more parties it would be more difficult to reach agreements."
+      ]
+    },
+
+    {
+      "name": "Substitute the national popular vote for the Electoral College through a constitutional amendment",
+      "pro": [
+        "Every vote will count in whatever state it is cast.",
+        "Instead of the campaign focusing on a few critical swing states we will have a truly national election."
+      ],
+      "con": [
+        "The constitution is hard to change. There are more urgent priorities.",
+        "The national popular vote will be hard to count with enough accuracy if there is a close election. We could have long recounts on a national basis.",
+        "Without the electoral college, small towns and rural areas would be ignored and candidates would only campaign where there are big concentrations of voters."
+      ]
+    }
+  ],
+  "campaignFinanceReform": [{
+      "name": "Move to pass a constitutional amendment to overturn Citizens United",
+      "pro": [
+        "The Congress and the states should set reasonable campaign finance regulations.",
+        "The First Amendment is meant to support free speech and should not be used to allow those with huge wealth to drown out the voices of those without."
+      ],
+      "con": [
+        "The ruling for Citizens United upholds the First Amendment. Overturning this ruling may affect our right to free speech in this country.",
+        "Citizens United ensures that businesses, large or small, unions, and other membership based organizations may have a political voice.",
+        "Corporations are people and have rights to speak and act politically."
+      ]
+
+    },
+    {
+      "name": "Candidates/Individuals should have limits on how much they can spend on campaigns",
+      "pro": [
+        "Limits should be set on how much they should be allowed to spend. This would level the playing field for all campaigns.",
+        "Campaign spending limits will discourage corruption, the buying and selling of influence.",
+        "The status quo discourages grassroots and/or third party candidates."
+      ],
+      "con": [
+        "Putting limits on campaign spending is a violation of the First Amendment rights. If candidates can raise money, they should be able to spend it to advance their cause.",
+        "Candidates can always choose to observe their own limits. If candidates choose not to employ voluntary spending limits that is their right."
+      ]
+
+    },
+    {
+      "name": "Institute tax-payer funded vouchers for every voter to spend on candidate campaigns",
+      "pro": [
+        "Vouchers would force candidates to focus their campaign on the broader population instead of wealthy individuals and groups.",
+        "These vouchers would also encourage the broader public to be more involved in the campaign process, and hopefully increase political interest among voters."
+      ],
+      "con": [
+        "The vouchers benefit incumbents as they have the highest name recognition and would most likely be the ones to receive the most public financing.",
+        "Offering vouchers would not draw in people that were not already interested in the campaign process. This would not change the existing campaign process."
+      ]
+
+    },
+    {
+      "name": "Require disclosures of top five donors in every communication",
+      "pro": [
+        "More and better information provides voters with more of an opportunity to educate them about who is behind each campaign communication.",
+        "This could create a more level playing field with wealthy special interests."
+      ],
+      "con": [
+        "The lists of donors might not accurately reflect public support, only the support of the largest contributors.",
+        "Such mandatory disclosures may raise free speech concerns."
+      ]
+
+    },
+    {
+      "name": "Modify definition of a corporation, where companies with more than 10% foreign ownership cannot contribute.",
+      "pro": [
+        "This modification would limit the type of entities that are able to contribute to campaigns.",
+        "Company ownerships are often unclear and companies are often not required to share detailed information. This proposal would ensure that companies contributing have less than 10% foreign ownership."
+      ],
+      "con": [
+        "This proposal would not change the status quo. Rather companies would just form other companies to fall within compliance.",
+        "If foreign entities want to make campaign contributions, they will find a way to do so. This proposal would not limit contributions from foreign entities."
+      ]
+
+    }
+  ],
+  "immigration": [{
+      "name": "Police officers should be allowed to inquire about the immigration status of victims",
+      "pro": [
+        "Police should not be prohibited from asking and enforcing immigration law.",
+        "If a police officer has probable cause that either party is in the country illegally, the officer should be allowed to inquire about the immigration status of all parties.",
+        "Federal immigration officers should have cooperation with local police."
+      ],
+      "con": [
+        "Victims of crimes who are undocumented are often afraid of coming forward because the police could ask about their immigration status or that of their family.",
+        "If victims are afraid to come forward to report the crime, it could make it easier for crime to happen in those areas.",
+        "Few local law enforcement officers are able to do the work of federal officials or to recognize the specialized documents that provide proof of immigration status."
+      ]
+
+    },
+    {
+      "name": "Police officers should be allowed to inquire about the immigration status of a witness",
+      "pro": [
+        "If a police officer has reasonable suspicion to believe a witness might be undocumented, the officer should not be prohibited from checking that she or he is legal in this country.",
+        "Federal immigration officers should have cooperation with local police.",
+        "Even though a witness to a crime is detained, it does not necessarily mean that she or he will be deported. She or he will be detained while the investigation is on-going and, in some cases, where she or he becomes a good witness she or he can potentially become a legal citizen or paroled while the action is in process."
+      ],
+      "con": [
+        "If a witness is afraid to come forward to testify, it could result in the perpetrator going free and would undermine the justice system.",
+        "Few local law enforcement officers are able to do the work of federal officials or to recognize the specialized documents that provide proof of immigration status.",
+        "It could lead to increased distrust in the legal system. Witnesses would have less incentive to come forward if they are in fear of being questioned, detained, and/ or deported."
+      ]
+
+    },
+    {
+      "name": "Undocumented immigrants in financial need should have court appointed counsel in immigration cases",
+      "pro": [
+        "Deportation proceedings often involve complex legal questions that most of undocumented immigrants do not know how to navigate.",
+        "Providing legal counsel could help those going through immigration proceedings be granted judicial relief. Keeping immigrant families together saves money for the state’s taxpayers in increased tax revenues."
+      ],
+      "con": [
+        "Undocumented immigrants are here illegally and should not have the same rights as citizens or noncitizens here legally.",
+        "Tax dollars should not be spent on court appointed attorneys and translators to defend undocumented immigrants here illegally."
+      ]
+
+    },
+    {
+      "name": "Local government should allocate funding to local non-profits to provide immigration legal services",
+      "pro": [
+        "Without legal assistance, many immigrants are often unaware of how their rights can be defended.",
+        "Many undocumented immigrants cannot afford legal assistance, and without it do not fare well in immigration court and their liberty is at risk.",
+        "Not being able to afford legal services in immigration proceedings could result in unnecessary deportation. This could split families apart and could place undue burdens on families and even the tax payers should children have to end up as wards of the state."
+      ],
+      "con": [
+        "Immigration is a federal law and should not be up to the states to fund attorneys for undocumented immigrants.",
+        "Funds are drawing tax dollars away from American citizens and legal resident aliens in need.",
+        "Immigration proceedings might be civil matters and no Americans who are defending themselves in civil proceedings are entitled to taxpayer-funded representation."
+      ]
+
+    },
+    {
+      "name": "Legal options should be provided for long-term undocumented immigrants who have not committed any serious crime",
+      "pro": [
+        "Creating legal options for those who have been in the country over a long period of time will put them on a path through to citizenship without the fear of being deported.",
+        "Providing legal options can help lower poverty among undocumented immigrants, allow them to attain jobs legally, pay into the tax system, and would allow them to apply for jobs with higher pay.",
+        "It is in the national interest to determine who is residing in the U.S. be it lawfully or unlawfully in order to create a database for law enforcement purposes."
+      ],
+      "con": [
+        "Providing pathways to citizenship and legalization rewards illegal immigrants and disrespects those who have come to the country legally.",
+        "This would incentivize those who come to the country illegally to stay here as long as possible in order to be eligible to convert their illegal status to legal status. ",
+        "They already violated the immigration law and can be seen as criminals. It does not make sense to grant them legal status just because they do not commit other crimes."
+      ]
+
+    }
+  ]
+}
