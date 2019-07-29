@@ -1,18 +1,20 @@
 import json
 import csv
 import math
+import requests
 
 import pandas as pd
 import os
 from nltk.tokenize import sent_tokenize
 #from gensim2 import SimilarityTester
 import numpy as np
+import matplotlib.pyplot as plt
 
 from socket_trial_server import *
 from dataAnalyzer import DataAnalyzer
 
 
-MODE = 'Text Similarity'  # ['Text Similarity', "Sentiment Analysis']
+MODE = 'Text Similarity'  # ['Text Similarity', 'Sentiment Analysis']
 
 VERBOSE = False
 PRINT_MESSAGES = False
@@ -60,7 +62,14 @@ transcript_headers = ["Section ID",
 					  "Best match in section",
 					  "Similarity Best match in section",
 					  "True sentiment",
-					  "True match"]
+					  "True match"] if MODE == 'Text Similarity' else [
+					  "Section ID",
+					  "Speech ID",
+					  "Sentence ID",
+					  "User Name",
+					  "Text",
+					  "Predicted sentiment",
+					  "True sentiment"]
 
 old_labels = {}
 old_sentiments = {}
@@ -74,7 +83,8 @@ class StatsRecorder:
 		self.csv_writer = csv_writer
 		self.transcript_writer = transcript_writer
 		self.section = ''
-		self.st = SimilarityTester()
+		if MODE == 'Text Similarity':
+			self.st = SimilarityTester()
 
 		# For current speech
 		self.username = None
@@ -86,14 +96,15 @@ class StatsRecorder:
 		self.label = 0
 		self.sentences = []
 		self.predicted_sentiments = []
-		self.best_matches = []
-		self.best_matches_similarities = []
-		self.best_matches_same_topic = []
-		self.best_matches_same_topic_similarities = []
-		self.best_matches_same_section = []
-		self.best_matches_same_section_similarities = []
 		self.true_sentiments = []
-		self.true_match = []
+		if MODE == 'Text Similarity':
+			self.best_matches = []
+			self.best_matches_similarities = []
+			self.best_matches_same_topic = []
+			self.best_matches_same_topic_similarities = []
+			self.best_matches_same_section = []
+			self.best_matches_same_section_similarities = []
+			self.true_matches = []
 
 		# For the entire section
 		self.section_id = 0
@@ -119,14 +130,15 @@ class StatsRecorder:
 		self.label = 0
 		self.sentences = []
 		self.predicted_sentiments = []
-		self.best_matches = []
-		self.best_matches_similarities = []
-		self.best_matches_same_topic = []
-		self.best_matches_same_topic_similarities = []
-		self.best_matches_same_section = []
-		self.best_matches_same_section_similarities = []
 		self.true_sentiments = []
-		self.true_matches = []
+		if MODE == 'Text Similarity':
+			self.best_matches = []
+			self.best_matches_similarities = []
+			self.best_matches_same_topic = []
+			self.best_matches_same_topic_similarities = []
+			self.best_matches_same_section = []
+			self.best_matches_same_section_similarities = []
+			self.true_matches = []
 
 		# For the entire section
 		self.section_id = 0
@@ -161,12 +173,13 @@ class StatsRecorder:
 		self.speech_time = end_time/1000 - start_time/1000
 		self.weighted_sentiment = 0
 		self.predicted_sentiments = []
-		self.best_matches = []
-		self.best_matches_similarities = []
-		self.best_matches_same_topic = []
-		self.best_matches_same_topic_similarities = []
-		self.best_matches_same_section = []
-		self.best_matches_same_section_similarities = []
+		if MODE == 'Text Similarity':
+			self.best_matches = []
+			self.best_matches_similarities = []
+			self.best_matches_same_topic = []
+			self.best_matches_same_topic_similarities = []
+			self.best_matches_same_section = []
+			self.best_matches_same_section_similarities = []
 
 		self.num_spoken += 1
 		self.time_spoken += self.speech_time
@@ -204,28 +217,47 @@ class StatsRecorder:
 		"""
 		if PRINT_MESSAGES:
 			print(self.username + ":" + sentence)
-		#score = 0  # USE gensim2 HERE
-		#label, match, match_sim, match_topic, match_topic_sim, match_section, match_section_sim = self.st.similarity_query(
-		#	sentence, topic, self.section, neutral_cutoff=NEUTRAL_CUTOFF, best_matches_count=BEST_MATCHES_COUNT, verbose=VERBOSE)
-		data = self.st.similarity_query(
-			sentence, topic, int(self.section[1:]), neutral_cutoff=NEUTRAL_CUTOFF, best_matches_count=BEST_MATCHES_COUNT, verbose=VERBOSE)
-		label = data['label']
-		match = data['best_match_old']
-		match_sim = data['best_match_similarity']
-		match_topic = data['best_matches_same_topic_old'][0]
-		match_topic_sim = data['best_matches_same_topic_similarity'][0]
-		match_section = data['best_match_same_section_old']
-		match_section_sim = data['best_match_same_section_similarity']
-		labels = ["Con", "Neutral", "Pro"]
-		score = labels.index(label) - 1
+
+		# TODO: Deal with sentiment analysis
+		if MODE == 'Text Similarity':
+			data = self.st.similarity_query(
+				sentence, topic, int(self.section[1:]), neutral_cutoff=NEUTRAL_CUTOFF, best_matches_count=BEST_MATCHES_COUNT, verbose=VERBOSE)
+			label = data['label']
+			match = data['best_match_old']
+			match_sim = data['best_match_similarity']
+			match_topic = data['best_matches_same_topic_old'][0]
+			match_topic_sim = data['best_matches_same_topic_similarity'][0]
+			match_section = data['best_match_same_section_old']
+			match_section_sim = data['best_match_same_section_similarity']
+			labels = ["Con", "Neutral", "Pro"]
+			score = labels.index(label) - 1
+		elif MODE == 'Sentiment Analysis':
+			API_ENDPOINT = "https://api.meaningcloud.com/sentiment-2.1"
+			data = {
+				'key':'7a4a4878fd419d831e44ea7ed1549149',
+				'lang':'en',
+				'txt': sentence
+			}
+			r = requests.post(url = API_ENDPOINT, data = data)
+			results_json = r.json()
+			while results_json['status']['msg'] != 'OK':
+				if results_json['status']['msg'] == 'Request rate limit exceeded':
+					r = requests.post(url = API_ENDPOINT, data = data)
+					results_json = r.json()
+				else:
+					print('API error when running sentiment analysis: ' + results_json['status']['msg'])
+					return
+			score_tag = results_json['score_tag']
+			score = -1 if score_tag in ['N+', 'N'] else 1 if score_tag in ['P+', 'P'] else 0
 
 		self.predicted_sentiments.append(score)
-		self.best_matches.append(match)
-		self.best_matches_similarities.append(match_sim)
-		self.best_matches_same_topic.append(match_topic)
-		self.best_matches_same_topic_similarities.append(match_topic_sim)
-		self.best_matches_same_section.append(match_section)
-		self.best_matches_same_section_similarities.append(match_section_sim)
+		if MODE == 'Text Similarity':
+			self.best_matches.append(match)
+			self.best_matches_similarities.append(match_sim)
+			self.best_matches_same_topic.append(match_topic)
+			self.best_matches_same_topic_similarities.append(match_topic_sim)
+			self.best_matches_same_section.append(match_section)
+			self.best_matches_same_section_similarities.append(match_section_sim)
 		self.weighted_sentiment += length_ratio * score
 		self.num_spoken_weighted += length_ratio * score
 		self.time_spoken_weighted += self.speech_time * length_ratio * score
@@ -270,7 +302,8 @@ class StatsRecorder:
 				#	scores.append(old_sentiments[self.session][self.audio_id][i])
 				#return scores
 				scores_old = [a for a,b in old_sentiments[self.session][self.audio_id].values()]
-				matches = [b for a,b in old_sentiments[self.session][self.audio_id].values()]
+				matches = [b for a,b in old_sentiments[self.session][self.audio_id].values()]  # Should be '' if sentiment analysis (TODO: Check)
+
 				if -0.2 <= sum(scores_old) * 1.0 / len(scores_old) <= 0.2:
 					return [0], [matches[0]]
 				else:
@@ -284,12 +317,14 @@ class StatsRecorder:
 		for c in s:
 			scores.append(1 if c == '1' else (-1 if c == '0' else 0))
 
-		match = input("Please enter the actual pro/con point being discussed (format: \"pro 2\" or \"2\"):")
-		if match and "pro" not in match and "con" not in match:
-			match = "%s %s" % ("pro" if scores[0] == 1 else "con", match)
-		match = ("%s %s %s" % (topic, self.section, match)).strip() if match else ''
-		matches = [match] * sentence_num  # Temporary
-		return scores, matches
+		# TODO: Deal with sentiment analysis
+		if MODE == 'Text Similarity':
+			match = input("Please enter the actual pro/con point being discussed (format: \"pro 2\" or \"2\"):")
+			if match and "pro" not in match and "con" not in match:
+				match = "%s %s" % ("pro" if scores[0] == 1 else "con", match)
+			match = ("%s %s %s" % (topic, self.section, match)).strip() if match else ''
+			matches = [match] * sentence_num  # Temporary
+			return scores, matches
 
 	def write_csv(self):
 		"""
@@ -338,6 +373,14 @@ class StatsRecorder:
 				self.best_matches_same_section_similarities[i],
 				self.true_sentiments[i],
 				self.true_matches[i]
+			] if MODE == 'Text Similarity' else [
+				self.section,
+				self.audio_id,
+				i,
+				self.username,
+				'"' + self.sentences[i] + '"',
+				self.predicted_sentiments[i],
+				self.true_sentiments[i]
 			])
 
 
@@ -351,7 +394,7 @@ def read(filename):
 	# parse json
 	obj = json.loads(transcript)
 
-	out = open(filename + '.csv', 'w', newline='')
+	out = open(filename + '_' + MODE + '.csv', 'w', newline='')
 	csv_writer = csv.writer(out)
 	csv_writer.writerow(headers)
 
@@ -366,7 +409,7 @@ def read(filename):
 		if IMPORT_PROS_CONS:
 			initialize_transcripts(session_name)
 
-		out2 = open(session_name + '_transcript.csv', 'w', newline='')
+		out2 = open(session_name + '_transcript_' + MODE + '.csv', 'w', newline='')
 		transcript_writer = csv.writer(out2)
 		transcript_writer.writerow(transcript_headers)
 
@@ -494,7 +537,10 @@ def initialize_labels(sessions=None):
 		return
 	for session in sessions:
 		try:
-			df = pd.read_csv(os.path.join(old_CSV_path, session + ".csv"))
+			try:
+				df = pd.read_csv(os.path.join(old_CSV_path, session + "_" + MODE + ".csv"))
+			except FileNotFoundError:
+				df = pd.read_csv(os.path.join(old_CSV_path, session + ".csv"))
 			for i in range(len(df[speech_id_header])):
 				speech_id = df[speech_id_header][i]
 				label = df[label_header][i]
@@ -521,7 +567,10 @@ def initialize_transcripts(session):
 	if session not in old_sentiments:
 		old_sentiments[session] = {}
 	try:
-		df = pd.read_csv(os.path.join(old_CSV_path, session + "_transcript.csv"))
+		try:
+			df = pd.read_csv(os.path.join(old_CSV_path, session + "_transcript_" + MODE + ".csv"))
+		except FileNotFoundError:
+			df = pd.read_csv(os.path.join(old_CSV_path, session + "_transcript.csv"))
 		for i in range(len(df[speech_id_header])):
 			speech_id = df[speech_id_header][i]
 			sentence_id = df[sentence_id_header][i]
@@ -553,31 +602,54 @@ if __name__ == "__main__":
 	best_cutoff = 0
 	best_count = 0
 
-	for cutoff in cutoffs_to_test:
-		for best_matches_count in best_matches_count_test:
-			NEUTRAL_CUTOFF = cutoff
-			BEST_MATCHES_COUNT = best_matches_count
+	if MODE == 'Text Similarity':  # Cross-validation needed
+		accuracy_per_cutoff = []
+		for cutoff in cutoffs_to_test:
+			for best_matches_count in best_matches_count_test:
+				NEUTRAL_CUTOFF = cutoff
+				BEST_MATCHES_COUNT = best_matches_count
 
-			data_analyzer.reset()
-			for file in filename:
-				read(file)
-			print("Cutoff = %f, matches = %d" % (cutoff, best_matches_count))
+				data_analyzer.reset()
+				for file in filename:
+					read(file)
+				print("Cutoff = %f, matches = %d" % (cutoff, best_matches_count))
 
-			data_analyzer.print_session_accuracies()
-			accuracy = data_analyzer.get_accuracy()
-			print("Overall accuracy: %f" % accuracy)
-			if accuracy > best_accuracy:
-				best_accuracy = accuracy
-				best_cutoff = cutoff
-				best_count = best_matches_count
+				data_analyzer.print_session_accuracies()
+				accuracy = data_analyzer.get_accuracy()
+				print("Overall accuracy: %f" % accuracy)
+				if accuracy > best_accuracy:
+					best_accuracy = accuracy
+					best_cutoff = cutoff
+					best_count = best_matches_count
+				accuracy_per_cutoff.append(accuracy)
 
-	print("Best accuracy: %f, Cutoff: %f, # matches: %d" % (best_accuracy, best_cutoff, best_count))
-	NEUTRAL_CUTOFF = best_cutoff
-	BEST_MATCHES_COUNT = best_count
-	data_analyzer.reset()
-	for file in filename:
-		read(file)  # Repopulate CSV files
-	data_analyzer.print_session_accuracies()
-	data_analyzer.plot_confusion_matrix(
-		title="Confusion Matrix for sentence pro/con classifications using Text Similarity",
-		filename="Cutoff=%f, Matches=%d, Accuracy=%f" % (best_cutoff, best_count, best_accuracy))
+		print("Best accuracy: %f, Cutoff: %f, # matches: %d" % (best_accuracy, best_cutoff, best_count))
+		NEUTRAL_CUTOFF = best_cutoff
+		BEST_MATCHES_COUNT = best_count
+		data_analyzer.reset()
+		for file in filename:
+			read(file)  # Repopulate CSV files
+		data_analyzer.print_session_accuracies()
+		data_analyzer.plot_confusion_matrix(
+			title="Confusion Matrix for sentence pro/con classifications using " + MODE,
+			filename="%s, Cutoff=%f, Matches=%d, Accuracy=%f" % (MODE, best_cutoff, best_count, best_accuracy))
+
+		plt.clf()
+		fig, ax = plt.subplots()
+		ax.plot(cutoffs_to_test, accuracy_per_cutoff)
+		ax.set(xlabel='Similarity threshold',
+			   ylabel='Accuracy',
+			   title='Determining similarity threshold for sentence to be classified as neutral')
+		plt.savefig('Text Similarity_Neutral threshold.png')
+
+	else:
+		data_analyzer.reset()
+		for file in filename:
+			read(file)
+
+		data_analyzer.print_session_accuracies()
+		accuracy = data_analyzer.get_accuracy()
+		print("Overall accuracy: %f" % accuracy)
+		data_analyzer.plot_confusion_matrix(
+			title="Confusion Matrix for sentence pro/con classifications using " + MODE,
+			filename="%s, Accuracy=%f" % (MODE, accuracy))
