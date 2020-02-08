@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, accuracy_score
-from sklearn.utils.multiclass import unique_labels
 
 
 LABEL_NAMES = {  # For confusion matrix
@@ -144,7 +143,8 @@ class DataAnalyzer:
         for session, accuracy in self.session_accuracies.items():
             print("Session %s \t Accuracy: %f" % (session, accuracy))
 
-    def plot_confusion_matrix(self, session=None, filename=None, title=None):
+    def plot_confusion_matrix(self, session=None, filename=None, title=None,
+                              normalize=False):
         """
         Plot the confusion matrix for a session or the overall confusion
         matrix, and save it as an image file.
@@ -153,7 +153,7 @@ class DataAnalyzer:
         :param title: Title of plot
         """
         plot_confusion_matrix(cm=self.get_confusion_matrix(session),
-                              title=title)
+                              title=title, normalize=normalize)
         plt.savefig((filename if filename else 'Confusion Matrix') + '.png')
 
     def reset(self):

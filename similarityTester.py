@@ -1,13 +1,5 @@
 import eventlet
 import socketio
-import os
-import logging
-import csv
-import numpy as np
-import pandas as pd
-from pprint import pprint
-import sys
-import json
 
 # Disable gensim warnings
 import warnings
@@ -30,10 +22,40 @@ nltk.download('stopwords')
 nltk.download('punkt')
 
 
+"""
+This module is the back-end implementation of the text similarity model.
+
+We use Latent Sentiment Analysis to obtain similarity between sentences.
+The model is trained using data from all pre-made pros and cons arguments
+from each agenda (extracted from database when running the node.js app).
+Using the GenSim API, similarity between an input sentence and each of these
+pro/con points are obtained. We then choose:
+- Top match across the entire pool of pro/con points
+- Top 3 matches within the current topic
+- Top match within the current section (agenda item)
+Currently, we use the top match within section to classify the sentence as 
+pro or con, based on whether the top match is a pro or con. We expect that
+improvements can be made here.
+
+[How this module is used]
+For the actual platform, this script should be executed before launching the
+node.js app so that it will create a server at localhost:3002. The node app
+will then connect as a client and send it the agenda data necessary to 
+initialize the model.
+The node app will emit a similarityQuery event every time a transcript is 
+obtained from the Google Speech API, and the Python back end will return the
+results (predicted top matches and pro/con label).
+The node app will also update the Python back end whenever a new room is 
+created or the agenda changes. 
+
+This module is also used for training via transcriptParser. In that situation,
+this script doesn't need to be executed by itself. transcriptParser will
+import and use the necessary functions from here (initialize and the 
+SimilarityTester class).
+"""
+
+
 sio = socketio.Server()
-#app = socketio.WSGIApp(sio, static_files={
-#    '/': {'content_type': 'text/html', 'filename': 'index.html'}
-#})
 app = socketio.WSGIApp(sio)
 
 
@@ -41,20 +63,18 @@ app = socketio.WSGIApp(sio)
 
 
 NUM_RESULTS_SAME_TOPIC = 3  # number of results to be displayed from the same topic
-NEUTRAL_CUTOFF = 0.1  # Minimum similarity for an argument to be counted towards the label
+NEUTRAL_CUTOFF = 0.3  # Defalt minimum similarity for an argument to be counted towards the label
+                      # (Note: During training, value from transcriptParser will be used)
 PRO = 'Pro'
 CON = 'Con'
 NEUTRAL = 'Neutral'
 
 
-proConTopicLabel = []
-data = {}
 sentences = []  # All pros and cons listed by IDs (for dictionary)
 topics = []  # Topics of each sentences corresponding to sentences
 sections = []  # Section index (as integers)
 point_subindex = []  # Index of this argument within pros/cons of current section (0-indexed)
 labels = []  # "pro" or "con"
-arguments = {}  # {topic: {section_str: {pros: [ids], cons: [ids]}}
 dictionary = None
 
 st = None  # SimilarityTester
@@ -109,50 +129,6 @@ def initialize(args):
     st = SimilarityTester()
 
 
-#def construct_arguments():
-    """
-    Construct the arguments dict.
-    """
-    """global proConTopicLabel
-    proConTopicLabel = []
-    with open("proConTopicLabel.csv") as csvfile:
-        reader = csv.reader(csvfile)
-        for row in reader: # each row is a list
-            proConTopicLabel.append(row)
-    for i in range(len(proConTopicLabel[0])):
-        topic = proConTopicLabel[1][i]
-        section = proConTopicLabel[2][i]
-        text = proConTopicLabel[3][i]
-        label = proConTopicLabel[0][i]
-        if topic not in arguments:
-            arguments[topic] = {}
-        if section not in arguments[topic]:
-            arguments[topic][section] = {}
-        if label not in arguments[topic][section]:
-            arguments[topic][section][label] = []
-        arguments[topic][section][label].append(i)"""
-
-
-def get_topic(index):
-    """
-    Given an index of a sentence in the corpus, find its corresponding topic (e.g. "immigration").
-    """
-    return proConTopicLabel[1][index]
-
-
-def get_pro_con_index(index):
-    """
-    Given an index of a sentence in the corpus, find its corresponding index among EITHER the pros OR the cons.
-    (e.g. con 1, con 2, etc)
-    """
-    entries = [arguments[topic][section][label]
-               for topic in arguments 
-               for section in arguments[topic] 
-               for label in arguments[topic][section]
-               if index in arguments[topic][section][label]]
-    return entries[0].index(index) + 1
-
-
 def get_point_number(index):
     """
     Given an index of a sentence in the corpus, find the corresponding point number as listed in the agenda.
@@ -161,34 +137,11 @@ def get_point_number(index):
     """
     if index is None:
         return None
-    """entries = [(topic, section, label, arguments[topic][section][label])
-               for topic in arguments 
-               for section in arguments[topic] 
-               for label in arguments[topic][section]
-               if index in arguments[topic][section][label]]
-    topic, section, label, indexes = entries[0]
-    index_in_label = indexes.index(index) + 1
-    return "%d.%d" % (
-        int(section[1:]), 
-        (index_in_label if label == 'pro'
-         else index_in_label + len(arguments[topic][section]['pro'])))"""
-    #return "%d.%d" % (sections[index], (point_subindex[index] + 1 if labels[index] == 'pro'
-    #                                    else len(data[topics[index]][sections[index]][0]) + point_subindex[index] + 1))
     return "%s %d.%d" % (labels[index], sections[index], point_subindex[index] + 1)
 
 
 class SimilarityTester:
     def __init__(self):
-        #if (os.path.exists("/Users/cindyweng/Documents/Duke/Automated agenda management/dictionary.dict")):
-        """if (os.path.exists("dictionary.dict")):
-            #dictionary = corpora.Dictionary.load('/Users/cindyweng/Documents/Duke/Automated agenda management/dictionary.dict')
-            self.dictionary = corpora.Dictionary.load('dictionary.dict')
-            # document term matrix
-            #corpus = corpora.MmCorpus('/Users/cindyweng/Documents/Duke/Automated agenda management/corpus.mm')
-            self.corpus = corpora.MmCorpus('corpus.mm')
-            # print("Used files generated from gensim1.py")
-        else:
-            raise RuntimeError("Run gensim1.py to generate data set")"""
         self.dictionary = dictionary
         self.corpus = corpora.MmCorpus('corpus.mm')
 
@@ -203,11 +156,6 @@ class SimilarityTester:
         # initialize an LSI transformation
         self.lsi = models.LsiModel(self.corpus_tfidf, id2word=self.dictionary, num_topics=44)
         # self.corpus_lsi = lsi[self.corpus_tfidf]
-        # for doc in corpus_lsi:
-        #     print(doc)
-
-        # load pros/cons and topic labels of pre-made list
-        #construct_arguments()
 
     def similarity_query(self, text, topic, section, num_results=1, neutral_cutoff=NEUTRAL_CUTOFF, best_matches_count=1, verbose=True):
         """
@@ -227,10 +175,6 @@ class SimilarityTester:
         # transform corpus to LSI space and index it
         index = similarities.MatrixSimilarity(self.lsi[self.corpus])
 
-        # save and load index
-        # index.save('/Users/cindyweng/Documents/Duke/Automated agenda management/test.index')
-        # index = similarities.MatrixSimilarity.load('/Users/cindyweng/Documents/Duke/Automated agenda management/test.index')
-
         # perform a similarity query against the corpus
         sims = index[vec_lsi]
         sims = sorted(enumerate(sims), key=lambda item: -item[1])
@@ -238,9 +182,6 @@ class SimilarityTester:
 
         # determine if sentence is pro/con based on top 3 sentence similarity matches
         # only compares sentence to agenda item of the same topic and same section
-        label = ""
-        procount = 0
-        concount = 0
 
         def generate_string(index):
             """
@@ -250,8 +191,6 @@ class SimilarityTester:
             if index is None:
                return None
             return ("%s %s %s %d" % (
-                #proConTopicLabel[1][index], proConTopicLabel[2][index],
-                #proConTopicLabel[0][index], get_pro_con_index(index))
                 topics[index], sections[index], labels[index], point_subindex[index] + 1)).replace("Pro", "pro").replace("Con", "con")
 
         sims_same_topic = [(index, sim) for index, sim in sims if topics[index] == topic]
@@ -259,15 +198,12 @@ class SimilarityTester:
 
         best_match = sims[0][0]  #generate_string(0)
         best_match_similarity = sims[0][1]
-        #best_match_same_topic = sims_same_topic[0][0] if sims_same_topic else None
-        #best_match_same_topic_similarity = sims_same_topic[0][1] if sims_same_topic else None
         best_matches_same_topic = [index for index, sim in sims_same_topic][:num_results]
         best_matches_same_topic_similarity = [sim for index, sim in sims_same_topic][:num_results]
         best_match_same_section = sims_same_section[0][0] if sims_same_section else None
         best_match_same_section_similarity = sims_same_section[0][1] if sims_same_section else None
         if verbose:
-            tmp = [('Overall', best_match, best_match_similarity), 
-                   #('Same topic', best_match_same_topic, best_match_same_topic_similarity),
+            tmp = [('Overall', best_match, best_match_similarity),
                    ('Same section', best_match_same_section, best_match_same_section_similarity)]
             for string, index, sim in tmp:
                 print("  %s: %f %s %s %s %s" % (
@@ -285,7 +221,6 @@ class SimilarityTester:
                     sections[best_matches_same_topic[i]], 
                     labels[best_matches_same_topic[i]], 
                     point_subindex[best_matches_same_topic[i]] + 1))
-            #print("  %f %s %s %s %s" % (sims[0][1], proConTopicLabel[0][sims[0][0]], proConTopicLabel[1][sims[0][0]], proConTopicLabel[2][sims[0][0]], proConTopicLabel[3][sims[0][0]]))  # DEBUG
         
         sims_same_section_counted = sims_same_section[:best_matches_count]
         pros_counted = [(index, sim) for index, sim in sims_same_section_counted 
@@ -295,31 +230,6 @@ class SimilarityTester:
         procount = sum([sim for index, sim in pros_counted])
         concount = sum([sim for index, sim in cons_counted])
 
-        #matches_counted = 0
-        """for i in range(len(sims)):
-            if proConTopicLabel[1][sims[i][0]] == topic:
-                if proConTopicLabel[2][sims[i][0]] == section:
-                    if best_match_same_section is None:
-                        best_match_same_section = sims[i][0] #generate_string(i)
-                        best_match_same_section_similarity = sims[i][1]
-                        if best_match_same_topic is None:
-                            best_match_same_topic = sims[i][0] #generate_string(i)
-                            best_match_same_topic_similarity = sims[i][1]
-                    if sims[i][1] >= neutral_cutoff and matches_counted < best_matches_count:
-                        matches_counted += 1
-                        if proConTopicLabel[0][sims[i][0]] == 'pro':
-                            procount += sims[i][1]
-                        else:
-                            concount += sims[i][1]
-                    if verbose:
-                        print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG
-                elif best_match_same_topic is None:
-                    best_match_same_topic = sims[i][0] #generate_string(i)
-                    best_match_same_topic_similarity = sims[i][1]
-                    if verbose:
-                        print("  %f %s %s %s %s" % (sims[i][1], proConTopicLabel[0][sims[i][0]], proConTopicLabel[1][sims[i][0]], proConTopicLabel[2][sims[i][0]], proConTopicLabel[3][sims[i][0]]))  # DEBUG"""
-
-
         if procount > concount and procount + concount > 0:
             label = PRO
         else:
@@ -327,15 +237,12 @@ class SimilarityTester:
 
         return {
             "label": label,
+
             "best_match": get_point_number(best_match), #ret[1],
             "best_match_topic": topics[best_match],
             "best_match_old": generate_string(best_match),
             "best_match_similarity": best_match_similarity.item(),
-            # TODO: Convert the following to best_matches_same_topic
-            #"best_match_same_topic": get_point_number(best_match_same_topic), #ret[3],
-            #"best_match_same_topic_topic": topics[best_match_same_topic],
-            #"best_match_same_topic_old": generate_string(best_match_same_topic),
-            #"best_match_same_topic_similarity": None if best_match_same_topic_similarity is None else best_match_same_topic_similarity.item(),
+
             "best_matches_same_topic": [get_point_number(match) for match in best_matches_same_topic], #ret[3],
             "best_matches_same_topic_topic": [topics[match] for match in best_matches_same_topic],
             "best_matches_same_topic_old": [generate_string(match) for match in best_matches_same_topic],
@@ -382,6 +289,7 @@ def advanceAgenda(sid, data):
     print(room)
 
 
+# FIXME: No longer necessary. This is now controlled from the front end (i.e. No queries will be made after the chat ends).
 @sio.event
 def endChat(sid, data):
     if data['roomName'] not in database:
